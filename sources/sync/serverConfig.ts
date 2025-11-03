@@ -1,15 +1,28 @@
 import { MMKV } from 'react-native-mmkv';
+import { Platform } from 'react-native';
 
 // Separate MMKV instance for server config that persists across logouts
 const serverConfigStorage = new MMKV({ id: 'server-config' });
 
 const SERVER_KEY = 'custom-server-url';
-const DEFAULT_SERVER_URL = 'https://api.cluster-fluster.com';
+const PRODUCTION_SERVER_URL = 'https://api.cluster-fluster.com';
+
+// Auto-detect server URL for local development
+// When running on web+localhost, default to local server for convenience
+function getDefaultServerUrl(): string {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:3005';
+        }
+    }
+    return PRODUCTION_SERVER_URL;
+}
 
 export function getServerUrl(): string {
-    return serverConfigStorage.getString(SERVER_KEY) || 
-           process.env.EXPO_PUBLIC_HAPPY_SERVER_URL || 
-           DEFAULT_SERVER_URL;
+    return serverConfigStorage.getString(SERVER_KEY) ||
+           process.env.EXPO_PUBLIC_HAPPY_SERVER_URL ||
+           getDefaultServerUrl();
 }
 
 export function setServerUrl(url: string | null): void {
@@ -21,7 +34,7 @@ export function setServerUrl(url: string | null): void {
 }
 
 export function isUsingCustomServer(): boolean {
-    return getServerUrl() !== DEFAULT_SERVER_URL;
+    return getServerUrl() !== PRODUCTION_SERVER_URL && getServerUrl() !== getDefaultServerUrl();
 }
 
 export function getServerInfo(): { hostname: string; port?: number; isCustom: boolean } {
