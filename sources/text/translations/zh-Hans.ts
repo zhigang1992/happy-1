@@ -302,15 +302,27 @@ export const zhHans: TranslationStructure = {
         notValidHappyServer: '不是有效的 Happy 服务器',
         changeServer: '更改服务器',
         continueWithServer: '继续使用此服务器？',
+        changeServerReload: '页面将重新加载以应用新服务器。继续？',
         resetToDefault: '重置为默认',
         resetServerDefault: '重置服务器为默认值？',
+        resetServerReload: '页面将重新加载以使用默认服务器。继续？',
         validating: '验证中...',
         validatingServer: '正在验证服务器...',
         serverReturnedError: '服务器返回错误',
         failedToConnectToServer: '连接服务器失败',
         currentlyUsingCustomServer: '当前使用自定义服务器',
         customServerUrlLabel: '自定义服务器 URL',
-        advancedFeatureFooter: "这是一个高级功能。只有在您知道自己在做什么时才更改服务器。更改服务器后您需要重新登录。"
+        advancedFeatureFooter: '这是一个高级功能。只有在您知道自己在做什么时才更改服务器。更改服务器后页面将重新加载。',
+        // New keys for improved status display
+        currentServer: '当前服务器',
+        serverUrl: '服务器 URL',
+        connectionStatus: '连接状态',
+        serverType: '服务器类型',
+        customServer: '自定义服务器',
+        newServerUrl: '新服务器 URL',
+        statusConnected: '已连接',
+        statusError: '连接错误',
+        statusChecking: '检查中...',
     },
 
     sessionInfo: {

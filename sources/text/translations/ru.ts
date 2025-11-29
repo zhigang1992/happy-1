@@ -275,15 +275,27 @@ export const ru: TranslationStructure = {
         notValidHappyServer: 'Это не валидный сервер Happy',
         changeServer: 'Изменить сервер',
         continueWithServer: 'Продолжить с этим сервером?',
+        changeServerReload: 'Страница будет перезагружена для применения нового сервера. Продолжить?',
         resetToDefault: 'Сбросить по умолчанию',
         resetServerDefault: 'Сбросить сервер по умолчанию?',
+        resetServerReload: 'Страница будет перезагружена для использования сервера по умолчанию. Продолжить?',
         validating: 'Проверка...',
         validatingServer: 'Проверка сервера...',
         serverReturnedError: 'Сервер вернул ошибку',
         failedToConnectToServer: 'Не удалось подключиться к серверу',
         currentlyUsingCustomServer: 'Сейчас используется пользовательский сервер',
         customServerUrlLabel: 'URL пользовательского сервера',
-        advancedFeatureFooter: 'Это расширенная функция. Изменяйте сервер только если знаете, что делаете. Вам нужно будет выйти и войти снова после изменения серверов.'
+        advancedFeatureFooter: 'Это расширенная функция. Изменяйте сервер только если знаете, что делаете. Страница будет перезагружена после изменения сервера.',
+        // New keys for improved status display
+        currentServer: 'Текущий сервер',
+        serverUrl: 'URL сервера',
+        connectionStatus: 'Статус подключения',
+        serverType: 'Тип сервера',
+        customServer: 'Пользовательский сервер',
+        newServerUrl: 'Новый URL сервера',
+        statusConnected: 'Подключено',
+        statusError: 'Ошибка подключения',
+        statusChecking: 'Проверка...',
     },
 
     sessionInfo: {

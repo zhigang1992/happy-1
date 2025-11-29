@@ -300,15 +300,27 @@ export const en = {
         notValidHappyServer: 'Not a valid Happy Server',
         changeServer: 'Change Server',
         continueWithServer: 'Continue with this server?',
+        changeServerReload: 'The page will reload to apply the new server. Continue?',
         resetToDefault: 'Reset to Default',
         resetServerDefault: 'Reset server to default?',
+        resetServerReload: 'The page will reload to use the default server. Continue?',
         validating: 'Validating...',
         validatingServer: 'Validating server...',
         serverReturnedError: 'Server returned an error',
         failedToConnectToServer: 'Failed to connect to server',
         currentlyUsingCustomServer: 'Currently using custom server',
         customServerUrlLabel: 'Custom Server URL',
-        advancedFeatureFooter: "This is an advanced feature. Only change the server if you know what you're doing. You will need to log out and log in again after changing servers."
+        advancedFeatureFooter: "This is an advanced feature. Only change the server if you know what you're doing. The page will reload after changing servers.",
+        // New keys for improved status display
+        currentServer: 'Current Server',
+        serverUrl: 'Server URL',
+        connectionStatus: 'Connection Status',
+        serverType: 'Server Type',
+        customServer: 'Custom Server',
+        newServerUrl: 'New Server URL',
+        statusConnected: 'Connected',
+        statusError: 'Connection Error',
+        statusChecking: 'Checking...',
     },
 
     sessionInfo: {

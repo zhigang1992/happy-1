@@ -300,15 +300,27 @@ export const ca: TranslationStructure = {
         notValidHappyServer: 'No és un servidor Happy vàlid',
         changeServer: 'Canvia el servidor',
         continueWithServer: 'Continuar amb aquest servidor?',
+        changeServerReload: 'La pàgina es recarregarà per aplicar el nou servidor. Continuar?',
         resetToDefault: 'Reinicia per defecte',
         resetServerDefault: 'Reiniciar el servidor per defecte?',
+        resetServerReload: 'La pàgina es recarregarà per utilitzar el servidor per defecte. Continuar?',
         validating: 'Validant...',
         validatingServer: 'Validant el servidor...',
         serverReturnedError: 'El servidor ha retornat un error',
         failedToConnectToServer: 'Ha fallat la connexió amb el servidor',
         currentlyUsingCustomServer: 'Actualment utilitzant un servidor personalitzat',
         customServerUrlLabel: 'URL del servidor personalitzat',
-        advancedFeatureFooter: 'Aquesta és una funció avançada. Només canvia el servidor si saps el que fas. Hauràs de tancar la sessió i tornar-la a iniciar després de canviar els servidors.'
+        advancedFeatureFooter: 'Aquesta és una funció avançada. Només canvia el servidor si saps el que fas. La pàgina es recarregarà després de canviar els servidors.',
+        // New keys for improved status display
+        currentServer: 'Servidor actual',
+        serverUrl: 'URL del servidor',
+        connectionStatus: 'Estat de la connexió',
+        serverType: 'Tipus de servidor',
+        customServer: 'Servidor personalitzat',
+        newServerUrl: 'Nova URL del servidor',
+        statusConnected: 'Connectat',
+        statusError: 'Error de connexió',
+        statusChecking: 'Comprovant...',
     },
 
     sessionInfo: {

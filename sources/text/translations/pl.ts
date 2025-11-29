@@ -311,15 +311,27 @@ export const pl: TranslationStructure = {
         notValidHappyServer: 'To nie jest prawidłowy serwer Happy',
         changeServer: 'Zmień serwer',
         continueWithServer: 'Kontynuować z tym serwerem?',
+        changeServerReload: 'Strona zostanie przeładowana, aby zastosować nowy serwer. Kontynuować?',
         resetToDefault: 'Resetuj do domyślnego',
         resetServerDefault: 'Zresetować serwer do domyślnego?',
+        resetServerReload: 'Strona zostanie przeładowana, aby użyć domyślnego serwera. Kontynuować?',
         validating: 'Sprawdzanie...',
         validatingServer: 'Sprawdzanie serwera...',
         serverReturnedError: 'Serwer zwrócił błąd',
         failedToConnectToServer: 'Nie udało się połączyć z serwerem',
         currentlyUsingCustomServer: 'Aktualnie używany jest niestandardowy serwer',
         customServerUrlLabel: 'URL niestandardowego serwera',
-        advancedFeatureFooter: 'To jest zaawansowana funkcja. Zmieniaj serwer tylko jeśli wiesz, co robisz. Po zmianie serwera będziesz musiał się wylogować i zalogować ponownie.'
+        advancedFeatureFooter: 'To jest zaawansowana funkcja. Zmieniaj serwer tylko jeśli wiesz, co robisz. Strona zostanie przeładowana po zmianie serwera.',
+        // New keys for improved status display
+        currentServer: 'Aktualny serwer',
+        serverUrl: 'URL serwera',
+        connectionStatus: 'Status połączenia',
+        serverType: 'Typ serwera',
+        customServer: 'Niestandardowy serwer',
+        newServerUrl: 'Nowy URL serwera',
+        statusConnected: 'Połączony',
+        statusError: 'Błąd połączenia',
+        statusChecking: 'Sprawdzanie...',
     },
 
     sessionInfo: {

@@ -300,15 +300,27 @@ export const pt: TranslationStructure = {
         notValidHappyServer: 'Não é um servidor Happy válido',
         changeServer: 'Alterar servidor',
         continueWithServer: 'Continuar com este servidor?',
+        changeServerReload: 'A página será recarregada para aplicar o novo servidor. Continuar?',
         resetToDefault: 'Redefinir para padrão',
         resetServerDefault: 'Redefinir servidor para padrão?',
+        resetServerReload: 'A página será recarregada para usar o servidor padrão. Continuar?',
         validating: 'Validando...',
         validatingServer: 'Validando servidor...',
         serverReturnedError: 'O servidor retornou um erro',
         failedToConnectToServer: 'Falha ao conectar com o servidor',
         currentlyUsingCustomServer: 'Atualmente usando servidor personalizado',
         customServerUrlLabel: 'URL do servidor personalizado',
-        advancedFeatureFooter: 'Este é um recurso avançado. Altere o servidor apenas se souber o que está fazendo. Você precisará sair e entrar novamente após alterar servidores.'
+        advancedFeatureFooter: 'Este é um recurso avançado. Altere o servidor apenas se souber o que está fazendo. A página será recarregada após alterar servidores.',
+        // New keys for improved status display
+        currentServer: 'Servidor atual',
+        serverUrl: 'URL do servidor',
+        connectionStatus: 'Status da conexão',
+        serverType: 'Tipo de servidor',
+        customServer: 'Servidor personalizado',
+        newServerUrl: 'Nova URL do servidor',
+        statusConnected: 'Conectado',
+        statusError: 'Erro de conexão',
+        statusChecking: 'Verificando...',
     },
 
     sessionInfo: {

@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Text } from '@/components/StyledText';
 import { Typography } from '@/constants/Typography';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
+import { Item } from '@/components/Item';
 import { RoundButton } from '@/components/RoundButton';
 import { Modal } from '@/modal';
 import { layout } from '@/components/layout';
 import { t } from '@/text';
 import { getServerUrl, setServerUrl, validateServerUrl, getServerInfo } from '@/sync/serverConfig';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { Ionicons } from '@expo/vector-icons';
 
 const stylesheet = StyleSheet.create((theme) => ({
     keyboardAvoidingView: {
@@ -75,41 +77,82 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
 }));
 
+type ConnectionStatus = 'checking' | 'connected' | 'error';
+
 export default function ServerConfigScreen() {
     const { theme } = useUnistyles();
     const styles = stylesheet;
     const router = useRouter();
-    const serverInfo = getServerInfo();
-    const [inputUrl, setInputUrl] = useState(serverInfo.isCustom ? getServerUrl() : '');
-    const [error, setError] = useState<string | null>(null);
+
+    // Current server state
+    const [currentServerUrl, setCurrentServerUrl] = useState(() => getServerUrl());
+    const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
+    const [connectionError, setConnectionError] = useState<string | null>(null);
+
+    // Input state for new server
+    const [inputUrl, setInputUrl] = useState('');
+    const [inputError, setInputError] = useState<string | null>(null);
     const [isValidating, setIsValidating] = useState(false);
+
+    // Check connection to current server on mount and when it changes
+    const checkCurrentConnection = useCallback(async () => {
+        setConnectionStatus('checking');
+        setConnectionError(null);
+
+        try {
+            const response = await fetch(currentServerUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'text/plain' }
+            });
+
+            if (!response.ok) {
+                setConnectionStatus('error');
+                setConnectionError(t('server.serverReturnedError'));
+                return;
+            }
+
+            const text = await response.text();
+            if (!text.includes('Welcome to Happy Server!')) {
+                setConnectionStatus('error');
+                setConnectionError(t('server.notValidHappyServer'));
+                return;
+            }
+
+            setConnectionStatus('connected');
+        } catch (err) {
+            setConnectionStatus('error');
+            setConnectionError(t('server.failedToConnectToServer'));
+        }
+    }, [currentServerUrl]);
+
+    useEffect(() => {
+        checkCurrentConnection();
+    }, [checkCurrentConnection]);
 
     const validateServer = async (url: string): Promise<boolean> => {
         try {
             setIsValidating(true);
-            setError(null);
-            
+            setInputError(null);
+
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'text/plain'
-                }
+                headers: { 'Accept': 'text/plain' }
             });
-            
+
             if (!response.ok) {
-                setError(t('server.serverReturnedError'));
+                setInputError(t('server.serverReturnedError'));
                 return false;
             }
-            
+
             const text = await response.text();
             if (!text.includes('Welcome to Happy Server!')) {
-                setError(t('server.notValidHappyServer'));
+                setInputError(t('server.notValidHappyServer'));
                 return false;
             }
-            
+
             return true;
         } catch (err) {
-            setError(t('server.failedToConnectToServer'));
+            setInputError(t('server.failedToConnectToServer'));
             return false;
         } finally {
             setIsValidating(false);
@@ -124,7 +167,7 @@ export default function ServerConfigScreen() {
 
         const validation = validateServerUrl(inputUrl);
         if (!validation.valid) {
-            setError(validation.error || t('errors.invalidFormat'));
+            setInputError(validation.error || t('errors.invalidFormat'));
             return;
         }
 
@@ -136,27 +179,67 @@ export default function ServerConfigScreen() {
 
         const confirmed = await Modal.confirm(
             t('server.changeServer'),
-            t('server.continueWithServer'),
+            t('server.changeServerReload'),
             { confirmText: t('common.continue'), destructive: true }
         );
 
         if (confirmed) {
             setServerUrl(inputUrl);
+            // Force reload the page to apply the new server URL
+            if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.location.reload();
+            } else {
+                // On native, update state and re-check connection
+                setCurrentServerUrl(inputUrl);
+                setInputUrl('');
+            }
         }
     };
 
     const handleReset = async () => {
         const confirmed = await Modal.confirm(
             t('server.resetToDefault'),
-            t('server.resetServerDefault'),
+            t('server.resetServerReload'),
             { confirmText: t('common.reset'), destructive: true }
         );
 
         if (confirmed) {
             setServerUrl(null);
-            setInputUrl('');
+            // Force reload the page to apply the default server URL
+            if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.location.reload();
+            } else {
+                setCurrentServerUrl(getServerUrl());
+                setInputUrl('');
+            }
         }
     };
+
+    const getStatusColor = () => {
+        switch (connectionStatus) {
+            case 'connected': return theme.colors.status.connected;
+            case 'error': return theme.colors.textDestructive;
+            case 'checking': return theme.colors.status.connecting;
+        }
+    };
+
+    const getStatusText = () => {
+        switch (connectionStatus) {
+            case 'connected': return t('server.statusConnected');
+            case 'error': return connectionError || t('server.statusError');
+            case 'checking': return t('server.statusChecking');
+        }
+    };
+
+    const getStatusIcon = (): 'checkmark-circle' | 'alert-circle' | 'sync-circle' => {
+        switch (connectionStatus) {
+            case 'connected': return 'checkmark-circle';
+            case 'error': return 'alert-circle';
+            case 'checking': return 'sync-circle';
+        }
+    };
+
+    const serverInfo = getServerInfo();
 
     return (
         <>
@@ -168,14 +251,42 @@ export default function ServerConfigScreen() {
                 }}
             />
 
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
                 style={styles.keyboardAvoidingView}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ItemList style={styles.itemListContainer}>
-                    <ItemGroup footer={t('server.advancedFeatureFooter')}>
+                    {/* Current Server Status */}
+                    <ItemGroup title={t('server.currentServer')}>
+                        <Item
+                            title={t('server.serverUrl')}
+                            detail={currentServerUrl}
+                            showChevron={false}
+                            copy={true}
+                        />
+                        <Item
+                            title={t('server.connectionStatus')}
+                            detail={getStatusText()}
+                            icon={<Ionicons name={getStatusIcon()} size={29} color={getStatusColor()} />}
+                            showChevron={false}
+                            onPress={checkCurrentConnection}
+                        />
+                        {serverInfo.isCustom && (
+                            <Item
+                                title={t('server.serverType')}
+                                detail={t('server.customServer')}
+                                showChevron={false}
+                            />
+                        )}
+                    </ItemGroup>
+
+                    {/* Change Server */}
+                    <ItemGroup
+                        title={t('server.changeServer')}
+                        footer={t('server.advancedFeatureFooter')}
+                    >
                         <View style={styles.contentContainer}>
-                            <Text style={styles.labelText}>{t('server.customServerUrlLabel').toUpperCase()}</Text>
+                            <Text style={styles.labelText}>{t('server.newServerUrl').toUpperCase()}</Text>
                             <TextInput
                                 style={[
                                     styles.textInput,
@@ -184,7 +295,7 @@ export default function ServerConfigScreen() {
                                 value={inputUrl}
                                 onChangeText={(text) => {
                                     setInputUrl(text);
-                                    setError(null);
+                                    setInputError(null);
                                 }}
                                 placeholder={t('common.urlPlaceholder')}
                                 placeholderTextColor={theme.colors.input.placeholder}
@@ -193,9 +304,9 @@ export default function ServerConfigScreen() {
                                 keyboardType="url"
                                 editable={!isValidating}
                             />
-                            {error && (
+                            {inputError && (
                                 <Text style={styles.errorText}>
-                                    {error}
+                                    {inputError}
                                 </Text>
                             )}
                             {isValidating && (
@@ -221,15 +332,10 @@ export default function ServerConfigScreen() {
                                     />
                                 </View>
                             </View>
-                            {serverInfo.isCustom && (
-                                <Text style={styles.statusText}>
-                                    {t('server.currentlyUsingCustomServer')}
-                                </Text>
-                            )}
                         </View>
                     </ItemGroup>
 
-                    </ItemList>
+                </ItemList>
             </KeyboardAvoidingView>
         </>
     );
