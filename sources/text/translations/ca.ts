@@ -563,6 +563,8 @@ export const ca: TranslationStructure = {
         secretKeyLabel: 'CLAU SECRETA (TOCA PER COPIAR)',
         secretKeyCopied: 'Clau secreta copiada al porta-retalls. Desa-la en un lloc segur!',
         secretKeyCopyFailed: 'Ha fallat copiar la clau secreta',
+        cliLoginCommand: 'COMANDA D\'INICI DE SESSIÓ CLI (TOCA PER COPIAR)',
+        cliLoginDescription: 'Executa aquesta comanda en qualsevol terminal per iniciar sessió al teu compte amb el Happy CLI.',
         privacy: 'Privadesa',
         privacyDescription: 'Ajuda a millorar l\'aplicació compartint dades d\'ús anònimes. No es recopila informació personal.',
         analytics: 'Analítiques',

@@ -565,6 +565,8 @@ export const zhHans: TranslationStructure = {
         secretKeyLabel: '密钥（点击复制）',
         secretKeyCopied: '密钥已复制到剪贴板。请将其保存在安全的地方！',
         secretKeyCopyFailed: '复制密钥失败',
+        cliLoginCommand: 'CLI 登录命令（点击复制）',
+        cliLoginDescription: '在任何终端中运行此命令以使用 Happy CLI 登录您的账户。',
         privacy: '隐私',
         privacyDescription: '通过分享匿名使用数据来帮助改进应用。不会收集个人信息。',
         analytics: '分析',

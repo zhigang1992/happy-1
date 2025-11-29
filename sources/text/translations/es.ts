@@ -563,6 +563,8 @@ export const es: TranslationStructure = {
         secretKeyLabel: 'CLAVE SECRETA (TOCA PARA COPIAR)',
         secretKeyCopied: 'Clave secreta copiada al portapapeles. ¡Guárdala en un lugar seguro!',
         secretKeyCopyFailed: 'Falló al copiar la clave secreta',
+        cliLoginCommand: 'COMANDO DE INICIO DE SESIÓN CLI (TOCA PARA COPIAR)',
+        cliLoginDescription: 'Ejecuta este comando en cualquier terminal para iniciar sesión en tu cuenta con el Happy CLI.',
         privacy: 'Privacidad',
         privacyDescription: 'Ayude a mejorar la aplicación compartiendo datos de uso anónimos. No se recopila información personal.',
         analytics: 'Analíticas',

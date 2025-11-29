@@ -573,6 +573,8 @@ export const pl: TranslationStructure = {
         secretKeyLabel: 'KLUCZ TAJNY (DOTKNIJ, ABY SKOPIOWAĆ)',
         secretKeyCopied: 'Klucz tajny skopiowany do schowka. Przechowuj go w bezpiecznym miejscu!',
         secretKeyCopyFailed: 'Nie udało się skopiować klucza tajnego',
+        cliLoginCommand: 'POLECENIE LOGOWANIA CLI (DOTKNIJ, ABY SKOPIOWAĆ)',
+        cliLoginDescription: 'Uruchom to polecenie w dowolnym terminalu, aby zalogować się do swojego konta za pomocą Happy CLI.',
         privacy: 'Prywatność',
         privacyDescription: 'Pomóż ulepszyć aplikację, udostępniając anonimowe dane o użytkowaniu. Nie zbieramy żadnych informacji osobistych.',
         analytics: 'Analityka',

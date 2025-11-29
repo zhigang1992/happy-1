@@ -30,6 +30,7 @@ export default React.memo(() => {
     const router = useRouter();
     const [showSecret, setShowSecret] = useState(false);
     const [copiedRecently, setCopiedRecently] = useState(false);
+    const [copiedCLIRecently, setCopiedCLIRecently] = useState(false);
     const [analyticsOptOut, setAnalyticsOptOut] = useSettingMutable('analyticsOptOut');
     const { connectAccount, isLoading: isConnecting } = useConnectAccount();
     const profile = useProfile();
@@ -89,6 +90,19 @@ export default React.memo(() => {
             setCopiedRecently(true);
             setTimeout(() => setCopiedRecently(false), 2000);
             Modal.alert(t('common.success'), t('settingsAccount.secretKeyCopied'));
+        } catch (error) {
+            Modal.alert(t('common.error'), t('settingsAccount.secretKeyCopyFailed'));
+        }
+    };
+
+    // Generate CLI login command
+    const cliLoginCommand = formattedSecret ? `happy auth login --backup-key "${formattedSecret}"` : '';
+
+    const handleCopyCLICommand = async () => {
+        try {
+            await Clipboard.setStringAsync(cliLoginCommand);
+            setCopiedCLIRecently(true);
+            setTimeout(() => setCopiedCLIRecently(false), 2000);
         } catch (error) {
             Modal.alert(t('common.error'), t('settingsAccount.secretKeyCopyFailed'));
         }
@@ -281,6 +295,48 @@ export default React.memo(() => {
                                     ...Typography.mono()
                                 }}>
                                     {formattedSecret}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    </ItemGroup>
+                )}
+
+                {/* CLI Login Command */}
+                {showSecret && (
+                    <ItemGroup footer={t('settingsAccount.cliLoginDescription')}>
+                        <Pressable onPress={handleCopyCLICommand}>
+                            <View style={{
+                                backgroundColor: theme.colors.surface,
+                                paddingHorizontal: 16,
+                                paddingVertical: 14,
+                                width: '100%',
+                                maxWidth: layout.maxWidth,
+                                alignSelf: 'center'
+                            }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <Text style={{
+                                        fontSize: 11,
+                                        color: theme.colors.textSecondary,
+                                        letterSpacing: 0.5,
+                                        textTransform: 'uppercase',
+                                        ...Typography.default('semiBold')
+                                    }}>
+                                        {t('settingsAccount.cliLoginCommand')}
+                                    </Text>
+                                    <Ionicons
+                                        name={copiedCLIRecently ? "checkmark-circle" : "copy-outline"}
+                                        size={18}
+                                        color={copiedCLIRecently ? "#34C759" : theme.colors.textSecondary}
+                                    />
+                                </View>
+                                <Text style={{
+                                    fontSize: 12,
+                                    letterSpacing: 0.3,
+                                    lineHeight: 18,
+                                    color: theme.colors.text,
+                                    ...Typography.mono()
+                                }}>
+                                    {cliLoginCommand}
                                 </Text>
                             </View>
                         </Pressable>

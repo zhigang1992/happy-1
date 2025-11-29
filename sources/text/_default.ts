@@ -563,6 +563,8 @@ export const en = {
         secretKeyLabel: 'SECRET KEY (TAP TO COPY)',
         secretKeyCopied: 'Secret key copied to clipboard. Store it in a safe place!',
         secretKeyCopyFailed: 'Failed to copy secret key',
+        cliLoginCommand: 'CLI LOGIN COMMAND (TAP TO COPY)',
+        cliLoginDescription: 'Run this command on any terminal to log into your account with the Happy CLI.',
         privacy: 'Privacy',
         privacyDescription: 'Help improve the app by sharing anonymous usage data. No personal information is collected.',
         analytics: 'Analytics',
