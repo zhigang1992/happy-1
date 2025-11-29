@@ -21,8 +21,13 @@ export async function authApprove(token: string, publicKey: Uint8Array, answerV1
     // Use override URL if provided (for self-hosted setups), otherwise use configured server
     const API_ENDPOINT = serverUrlOverride || getServerUrl();
     const publicKeyBase64 = encodeBase64(publicKey);
-    
+
+    console.log('[AuthApprove] Starting auth approval');
+    console.log('[AuthApprove] API endpoint:', API_ENDPOINT);
+    console.log('[AuthApprove] Public key (truncated):', publicKeyBase64.substring(0, 20) + '...');
+
     // First, check the auth request status
+    console.log('[AuthApprove] Checking auth request status...');
     const statusResponse = await axios.get<AuthRequestStatus>(
         `${API_ENDPOINT}/v1/auth/request/status`,
         {
@@ -31,25 +36,27 @@ export async function authApprove(token: string, publicKey: Uint8Array, answerV1
             }
         }
     );
-    
+
     const { status, supportsV2 } = statusResponse.data;
-    
+    console.log('[AuthApprove] Status response:', { status, supportsV2 });
+
     // Handle different status cases
     if (status === 'not_found') {
-        // Already authorized, no need to approve again
-        console.log('Auth request already authorized or not found');
-        return;
+        // Auth request doesn't exist - this could mean the CLI hasn't created it yet
+        console.log('[AuthApprove] Auth request not found - CLI may not have created the request yet');
+        throw new Error('Auth request not found - please ensure the CLI is waiting for authorization');
     }
-    
+
     if (status === 'authorized') {
         // Already authorized, no need to approve again
-        console.log('Auth request already authorized');
+        console.log('[AuthApprove] Auth request already authorized');
         return;
     }
-    
+
     // Handle pending status
     if (status === 'pending') {
-        await axios.post(`${API_ENDPOINT}/v1/auth/response`, {
+        console.log('[AuthApprove] Sending auth response...');
+        const response = await axios.post(`${API_ENDPOINT}/v1/auth/response`, {
             publicKey: publicKeyBase64,
             response: supportsV2 ? encodeBase64(answerV2) : encodeBase64(answerV1)
         }, {
@@ -57,5 +64,6 @@ export async function authApprove(token: string, publicKey: Uint8Array, answerV1
                 'Authorization': `Bearer ${token}`,
             }
         });
+        console.log('[AuthApprove] Auth response sent successfully:', response.status);
     }
 }

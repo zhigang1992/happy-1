@@ -28,14 +28,31 @@ export function useConnectTerminal(options?: UseConnectTerminalOptions) {
 
         setIsLoading(true);
         try {
+            // Validate prerequisites
+            if (!auth.credentials) {
+                throw new Error('No credentials available - please log in first');
+            }
+            if (!sync.encryption?.contentDataKey) {
+                throw new Error('Encryption not initialized - please restart the app');
+            }
+
             const tail = url.slice('happy://terminal?'.length);
+            console.log('[TerminalConnect] Processing auth URL, server override:', serverUrlOverride);
+
             const publicKey = decodeBase64(tail, 'base64url');
-            const responseV1 = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
+            console.log('[TerminalConnect] Decoded public key, length:', publicKey.length);
+
+            const responseV1 = encryptBox(decodeBase64(auth.credentials.secret, 'base64url'), publicKey);
+            console.log('[TerminalConnect] Created V1 response');
+
             let responseV2Bundle = new Uint8Array(sync.encryption.contentDataKey.length + 1);
             responseV2Bundle[0] = 0;
             responseV2Bundle.set(sync.encryption.contentDataKey, 1);
             const responseV2 = encryptBox(responseV2Bundle, publicKey);
-            await authApprove(auth.credentials!.token, publicKey, responseV1, responseV2, serverUrlOverride);
+            console.log('[TerminalConnect] Created V2 response');
+
+            await authApprove(auth.credentials.token, publicKey, responseV1, responseV2, serverUrlOverride);
+            console.log('[TerminalConnect] Auth approve completed successfully');
 
             Modal.alert(t('common.success'), t('modals.terminalConnectedSuccessfully'), [
                 {
@@ -44,8 +61,10 @@ export function useConnectTerminal(options?: UseConnectTerminalOptions) {
                 }
             ]);
             return true;
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
+            console.error('[TerminalConnect] Error:', e);
+            console.error('[TerminalConnect] Error message:', e?.message);
+            console.error('[TerminalConnect] Error response:', e?.response?.data);
             Modal.alert(t('common.error'), t('modals.failedToConnectTerminal'), [{ text: t('common.ok') }]);
             options?.onError?.(e);
             return false;
