@@ -23,6 +23,7 @@ import { Image } from 'expo-image';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { disconnectGitHub } from '@/sync/apiGithub';
 import { disconnectService } from '@/sync/apiServices';
+import { updateProfile, UpdateProfileError } from '@/sync/apiProfile';
 
 export default React.memo(() => {
     const { theme } = useUnistyles();
@@ -45,6 +46,35 @@ export default React.memo(() => {
     // Profile display values
     const displayName = getDisplayName(profile);
     const githubUsername = profile.github?.login;
+    const currentUsername = profile.username;
+
+    // Username editing
+    const [updatingUsername, handleEditUsername] = useHappyAction(async () => {
+        const newUsername = await Modal.prompt(
+            t('settingsAccount.editUsername'),
+            t('settingsAccount.editUsernameDescription'),
+            {
+                placeholder: t('settingsAccount.usernamePlaceholder'),
+                defaultValue: currentUsername || '',
+            }
+        );
+
+        if (newUsername === null || newUsername === currentUsername) {
+            return; // Cancelled or no change
+        }
+
+        try {
+            await updateProfile(auth.credentials!, { username: newUsername || null });
+            await sync.refreshProfile();
+            Modal.alert(t('common.success'), t('settingsAccount.usernameUpdated'));
+        } catch (error: any) {
+            if (error.code === 'username-taken') {
+                Modal.alert(t('common.error'), t('settingsAccount.usernameTaken'));
+            } else {
+                throw error; // Re-throw for useHappyAction to handle
+            }
+        }
+    });
 
     // GitHub disconnection
     const [disconnecting, handleDisconnectGitHub] = useHappyAction(async () => {
@@ -154,39 +184,46 @@ export default React.memo(() => {
                 </ItemGroup>
 
                 {/* Profile Section */}
-                {(displayName || githubUsername || profile.avatar) && (
-                    <ItemGroup title={t('settingsAccount.profile')}>
-                        {displayName && (
-                            <Item
-                                title={t('settingsAccount.name')}
-                                detail={displayName}
-                                showChevron={false}
-                            />
-                        )}
-                        {githubUsername && (
-                            <Item
-                                title={t('settingsAccount.github')}
-                                detail={`@${githubUsername}`}
-                                subtitle={t('settingsAccount.tapToDisconnect')}
-                                onPress={handleDisconnectGitHub}
-                                loading={disconnecting}
-                                showChevron={false}
-                                icon={profile.avatar?.url ? (
-                                    <Image
-                                        source={{ uri: profile.avatar.url }}
-                                        style={{ width: 29, height: 29, borderRadius: 14.5 }}
-                                        placeholder={{ thumbhash: profile.avatar.thumbhash }}
-                                        contentFit="cover"
-                                        transition={200}
-                                        cachePolicy="memory-disk"
-                                    />
-                                ) : (
-                                    <Ionicons name="logo-github" size={29} color={theme.colors.textSecondary} />
-                                )}
-                            />
-                        )}
-                    </ItemGroup>
-                )}
+                <ItemGroup title={t('settingsAccount.profile')}>
+                    <Item
+                        title={t('settingsAccount.username')}
+                        detail={currentUsername ? `@${currentUsername}` : t('settingsAccount.usernameNotSet')}
+                        subtitle={t('settingsAccount.usernameSubtitle')}
+                        onPress={handleEditUsername}
+                        loading={updatingUsername}
+                        showChevron={false}
+                        icon={<Ionicons name="at-outline" size={29} color={theme.colors.textLink} />}
+                    />
+                    {displayName && (
+                        <Item
+                            title={t('settingsAccount.name')}
+                            detail={displayName}
+                            showChevron={false}
+                        />
+                    )}
+                    {githubUsername && (
+                        <Item
+                            title={t('settingsAccount.github')}
+                            detail={`@${githubUsername}`}
+                            subtitle={t('settingsAccount.tapToDisconnect')}
+                            onPress={handleDisconnectGitHub}
+                            loading={disconnecting}
+                            showChevron={false}
+                            icon={profile.avatar?.url ? (
+                                <Image
+                                    source={{ uri: profile.avatar.url }}
+                                    style={{ width: 29, height: 29, borderRadius: 14.5 }}
+                                    placeholder={{ thumbhash: profile.avatar.thumbhash }}
+                                    contentFit="cover"
+                                    transition={200}
+                                    cachePolicy="memory-disk"
+                                />
+                            ) : (
+                                <Ionicons name="logo-github" size={29} color={theme.colors.textSecondary} />
+                            )}
+                        />
+                    )}
+                </ItemGroup>
 
                 {/* Connected Services Section */}
                 {profile.connectedServices && profile.connectedServices.length > 0 && (() => {
