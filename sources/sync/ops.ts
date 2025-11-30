@@ -185,6 +185,29 @@ export async function machineStopDaemon(machineId: string): Promise<{ message: s
 }
 
 /**
+ * Ping the daemon on a specific machine to check if it's alive
+ * Returns daemon status info including timestamp and uptime
+ */
+export async function machinePing(machineId: string): Promise<{
+    status: 'alive';
+    timestamp: number;
+    uptime: number;
+    machineId: string;
+}> {
+    const result = await apiSocket.machineRPC<{
+        status: 'alive';
+        timestamp: number;
+        uptime: number;
+        machineId: string;
+    }, {}>(
+        machineId,
+        'ping',
+        {}
+    );
+    return result;
+}
+
+/**
  * Execute a bash command on a specific machine
  */
 export async function machineBash(

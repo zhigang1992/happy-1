@@ -726,6 +726,7 @@ export const ca: TranslationStructure = {
         launchNewSessionInDirectory: 'Inicia una nova sessió al directori',
         daemon: 'Dimoni',
         status: 'Estat',
+        pingDaemon: 'Ping al dimoni',
         stopDaemon: 'Atura el dimoni',
         lastKnownPid: 'Últim PID conegut',
         lastKnownHttpPort: 'Últim port HTTP conegut',

@@ -8,7 +8,7 @@ import { Typography } from '@/constants/Typography';
 import { useSessions, useAllMachines, useMachine, useSocketStatus, storage } from '@/sync/storage';
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import type { Session } from '@/sync/storageTypes';
-import { machineStopDaemon, machineUpdateMetadata } from '@/sync/ops';
+import { machineStopDaemon, machineUpdateMetadata, machinePing } from '@/sync/ops';
 import { Modal } from '@/modal';
 import { formatPathRelativeToHome, getSessionName, getSessionSubtitle } from '@/utils/sessionUtils';
 import { isMachineOnline, getMachineStatusText } from '@/utils/machineUtils';
@@ -73,6 +73,7 @@ export default function MachineDetailScreen() {
     const isConnected = socketStatus.status === 'connected';
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isStoppingDaemon, setIsStoppingDaemon] = useState(false);
+    const [isPingingDaemon, setIsPingingDaemon] = useState(false);
     const [isRenamingMachine, setIsRenamingMachine] = useState(false);
     const [customPath, setCustomPath] = useState('');
     const [isSpawning, setIsSpawning] = useState(false);
@@ -179,6 +180,43 @@ export default function MachineDetailScreen() {
                 }
             ]
         );
+    };
+
+    const handlePingDaemon = async () => {
+        if (!machineId) return;
+
+        setIsPingingDaemon(true);
+        try {
+            const startTime = Date.now();
+            const result = await machinePing(machineId);
+            const latency = Date.now() - startTime;
+
+            // Format uptime nicely
+            const uptimeSeconds = Math.floor(result.uptime);
+            const hours = Math.floor(uptimeSeconds / 3600);
+            const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+            const seconds = uptimeSeconds % 60;
+            const uptimeStr = hours > 0
+                ? `${hours}h ${minutes}m ${seconds}s`
+                : minutes > 0
+                    ? `${minutes}m ${seconds}s`
+                    : `${seconds}s`;
+
+            Modal.alert(
+                'Daemon Alive',
+                `Response time: ${latency}ms\nUptime: ${uptimeStr}`
+            );
+
+            // Refresh machines to update lastSeen/active status
+            await sync.refreshMachines();
+        } catch (error) {
+            Modal.alert(
+                t('common.error'),
+                'Failed to ping daemon. It may not be running or is unreachable.'
+            );
+        } finally {
+            setIsPingingDaemon(false);
+        }
     };
 
     // inline control below
@@ -467,6 +505,25 @@ export default function MachineDetailScreen() {
                                        daemonStatus === 'unknown' ? '#FF9500' : '#999'
                             }}
                             showChevron={false}
+                        />
+                        <Item
+                            title={t('machine.pingDaemon')}
+                            titleStyle={{
+                                color: !isConnected ? '#999' : '#007AFF'
+                            }}
+                            onPress={isConnected ? handlePingDaemon : undefined}
+                            disabled={isPingingDaemon || !isConnected}
+                            rightElement={
+                                isPingingDaemon ? (
+                                    <ActivityIndicator size="small" color={theme.colors.textSecondary} />
+                                ) : (
+                                    <Ionicons
+                                        name="pulse"
+                                        size={20}
+                                        color={!isConnected ? '#999' : '#007AFF'}
+                                    />
+                                )
+                            }
                         />
                         <Item
                             title={t('machine.stopDaemon')}

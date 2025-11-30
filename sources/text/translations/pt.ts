@@ -726,6 +726,7 @@ export const pt: TranslationStructure = {
         launchNewSessionInDirectory: 'Iniciar nova sessão no diretório',
         daemon: 'Daemon',
         status: 'Status',
+        pingDaemon: 'Ping daemon',
         stopDaemon: 'Parar daemon',
         lastKnownPid: 'Último PID conhecido',
         lastKnownHttpPort: 'Última porta HTTP conhecida',

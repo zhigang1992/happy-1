@@ -736,6 +736,7 @@ export const pl: TranslationStructure = {
         launchNewSessionInDirectory: 'Uruchom nową sesję w katalogu',
         daemon: 'Daemon',
         status: 'Status',
+        pingDaemon: 'Pinguj daemon',
         stopDaemon: 'Zatrzymaj daemon',
         lastKnownPid: 'Ostatni znany PID',
         lastKnownHttpPort: 'Ostatni znany port HTTP',

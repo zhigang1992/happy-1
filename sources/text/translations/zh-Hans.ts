@@ -728,6 +728,7 @@ export const zhHans: TranslationStructure = {
         offlineHelp: '• 确保您的计算机在线\n• 运行 `happy daemon status` 进行诊断\n• 您是否在运行最新的 CLI 版本？请使用 `npm install -g happy-coder@latest` 升级',
         daemon: '守护进程',
         status: '状态',
+        pingDaemon: 'Ping 守护进程',
         stopDaemon: '停止守护进程',
         lastKnownPid: '最后已知 PID',
         lastKnownHttpPort: '最后已知 HTTP 端口',

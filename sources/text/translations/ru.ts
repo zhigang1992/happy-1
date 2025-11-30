@@ -724,6 +724,7 @@ export const ru: TranslationStructure = {
         launchNewSessionInDirectory: 'Запустить новую сессию в папке',
         daemon: 'Daemon',
         status: 'Статус',
+        pingDaemon: 'Ping daemon',
         stopDaemon: 'Остановить daemon',
         lastKnownPid: 'Последний известный PID',
         lastKnownHttpPort: 'Последний известный HTTP порт',

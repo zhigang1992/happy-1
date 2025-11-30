@@ -726,6 +726,7 @@ export const en = {
         offlineHelp: '• Make sure your computer is online\n• Run `happy daemon status` to diagnose\n• Are you running the latest CLI version? Upgrade with `npm install -g happy-coder@latest`',
         daemon: 'Daemon',
         status: 'Status',
+        pingDaemon: 'Ping Daemon',
         stopDaemon: 'Stop Daemon',
         lastKnownPid: 'Last Known PID',
         lastKnownHttpPort: 'Last Known HTTP Port',
