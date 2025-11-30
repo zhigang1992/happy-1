@@ -55,6 +55,15 @@ function getDefaultServerUrl(): string {
 }
 
 export function getServerUrl(): string {
+    // Check for runtime override first (highest priority for E2E testing)
+    // This allows tests to specify the server port via URL hash without rebuilding
+    const portFromUrl = getServerPortFromUrl();
+    if (portFromUrl) {
+        const hostname =
+            typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+        return `http://${hostname}:${portFromUrl}`;
+    }
+
     const storedUrl = serverConfigStorage.getString(SERVER_KEY);
     const envUrl = process.env.EXPO_PUBLIC_HAPPY_SERVER_URL;
     const defaultUrl = getDefaultServerUrl();
