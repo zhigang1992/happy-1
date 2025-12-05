@@ -315,13 +315,16 @@ export const storage = create<StorageState>()((set, get) => {
                 const savedDraft = savedDrafts[session.id];
                 const existingPermissionMode = state.sessions[session.id]?.permissionMode;
                 const savedPermissionMode = savedPermissionModes[session.id];
-                // Priority: existing > saved > metadata (from CLI --yolo flag) > local session field > default
+                // Priority: existing > saved > metadata (from CLI --yolo flag) > local session field > YOLO default
                 const metadataPermissionMode = session.metadata?.permissionMode;
+                // Default to YOLO mode (bypassPermissions for Claude, yolo for Codex)
+                const isCodex = session.metadata?.flavor === 'codex';
+                const defaultPermissionMode = isCodex ? 'yolo' : 'bypassPermissions';
                 mergedSessions[session.id] = {
                     ...session,
                     presence,
                     draft: existingDraft || savedDraft || session.draft || null,
-                    permissionMode: existingPermissionMode || savedPermissionMode || metadataPermissionMode || session.permissionMode || 'default'
+                    permissionMode: existingPermissionMode || savedPermissionMode || metadataPermissionMode || session.permissionMode || defaultPermissionMode
                 };
             });
 

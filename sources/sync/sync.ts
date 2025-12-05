@@ -221,7 +221,10 @@ class Sync {
         }
 
         // Read permission mode and model mode from session state
-        const permissionMode = session.permissionMode || 'default';
+        // Default to YOLO mode (bypassPermissions for Claude, yolo for Codex)
+        const isCodex = session.metadata?.flavor === 'codex';
+        const defaultPermissionMode = isCodex ? 'yolo' : 'bypassPermissions';
+        const permissionMode = session.permissionMode || defaultPermissionMode;
         const modelMode = session.modelMode || 'default';
 
         // Generate local ID
@@ -281,7 +284,7 @@ class Sync {
             },
             meta: {
                 sentFrom,
-                permissionMode: permissionMode || 'default',
+                permissionMode,
                 model,
                 fallbackModel,
                 appendSystemPrompt: systemPrompt,
@@ -303,7 +306,7 @@ class Sync {
             message: encryptedRawRecord,
             localId,
             sentFrom,
-            permissionMode: permissionMode || 'default'
+            permissionMode
         });
 
         // Aggressively sync messages - invalidate to force a fresh fetch
