@@ -47,3 +47,4 @@ CLAUDE.local.md
 .dev/worktree/*
 sources/trash
 
+.playwright-mcp
