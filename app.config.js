@@ -149,7 +149,7 @@ export default {
             ]
         ],
         updates: {
-            url: "https://u.expo.dev/4558dd3d-cd5a-47cd-bad9-e591a241cc06",
+            url: "https://u.expo.dev/7742ac5a-fdbe-45e3-a32e-c46ddac22d4d",
             requestHeaders: {
                 "expo-channel-name": "production"
             }
