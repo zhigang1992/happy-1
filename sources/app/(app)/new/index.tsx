@@ -458,7 +458,7 @@ function NewSessionScreen() {
                 flex: 1,
                 justifyContent: Platform.OS === 'web' ? 'center' : 'flex-end',
                 paddingTop: Platform.OS === 'web' ? 0 : 40,
-                marginBottom: safeArea.bottom,
+                paddingBottom: safeArea.bottom,
             }}
         >
             <View style={{
