@@ -10,6 +10,8 @@ import { t } from '@/text';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { AgentInput } from '@/components/AgentInput';
 import { MultiTextInputHandle } from '@/components/MultiTextInput';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { machineSpawnNewSession } from '@/sync/ops';
 import { Modal } from '@/modal';
 import { sync } from '@/sync/sync';
@@ -109,6 +111,8 @@ function NewSessionScreen() {
     const [isSending, setIsSending] = React.useState(false);
     const [sessionType, setSessionType] = React.useState<'simple' | 'worktree'>('simple');
     const ref = React.useRef<MultiTextInputHandle>(null);
+    const headerHeight = useHeaderHeight();
+    const safeArea = useSafeAreaInsets();
     const screenWidth = useWindowDimensions().width;
 
     // Load recent machine paths and last used agent from settings
@@ -448,10 +452,12 @@ function NewSessionScreen() {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
             style={{
                 flex: 1,
                 justifyContent: Platform.OS === 'web' ? 'center' : 'flex-end',
                 paddingTop: Platform.OS === 'web' ? 0 : 40,
+                paddingBottom: safeArea.bottom,
             }}
         >
             <View style={{
