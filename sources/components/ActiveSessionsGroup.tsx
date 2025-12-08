@@ -4,8 +4,7 @@ import { Text } from '@/components/StyledText';
 import { useRouter } from 'expo-router';
 import { Session, Machine } from '@/sync/storageTypes';
 import { Ionicons } from '@expo/vector-icons';
-import { getSessionName, useSessionStatus, getSessionAvatarId, formatPathRelativeToHome, getSessionSubtitle, formatLastSeen } from '@/utils/sessionUtils';
-import { Avatar } from './Avatar';
+import { getSessionName, useSessionStatus, formatPathRelativeToHome, getSessionSubtitle, formatLastSeen } from '@/utils/sessionUtils';
 import { Typography } from '@/constants/Typography';
 import { StatusDot } from './StatusDot';
 import { useAllMachines, useSetting } from '@/sync/storage';
@@ -70,7 +69,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         textAlign: 'right',
     },
     sessionRow: {
-        height: 88,
+        height: 78,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
@@ -85,7 +84,6 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     },
     sessionContent: {
         flex: 1,
-        marginLeft: 16,
         justifyContent: 'center',
     },
     sessionTitleRow: {
@@ -134,11 +132,6 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         fontWeight: '500',
         lineHeight: 16,
         ...Typography.default(),
-    },
-    avatarContainer: {
-        position: 'relative',
-        width: 48,
-        height: 48,
     },
     newSessionButton: {
         flexDirection: 'row',
@@ -230,10 +223,6 @@ const FlatSessionRow = React.memo(({ session, selected }: { session: Session; se
     const navigateToSession = useNavigateToSession();
     const isTablet = useIsTablet();
 
-    const avatarId = React.useMemo(() => {
-        return getSessionAvatarId(session);
-    }, [session]);
-
     // Format the last message time (fall back to createdAt if no messages yet)
     const lastUpdatedText = React.useMemo(() => {
         const timestamp = session.lastMessageAt ?? session.createdAt;
@@ -258,18 +247,6 @@ const FlatSessionRow = React.memo(({ session, selected }: { session: Session; se
                 }
             }}
         >
-            <View style={styles.avatarContainer}>
-                <Avatar id={avatarId} size={48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
-                {session.draft && (
-                    <View style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons
-                            name="create-outline"
-                            size={12}
-                            color={styles.taskStatusText.color}
-                        />
-                    </View>
-                )}
-            </View>
             <View style={styles.sessionContent}>
                 {/* Title line with timestamp */}
                 <View style={styles.sessionTitleRow}>
@@ -344,10 +321,6 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder }: { sessi
     const navigateToSession = useNavigateToSession();
     const isTablet = useIsTablet();
 
-    const avatarId = React.useMemo(() => {
-        return getSessionAvatarId(session);
-    }, [session]);
-
     return (
         <Pressable
             style={[
@@ -366,9 +339,6 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder }: { sessi
                 }
             }}
         >
-            <View style={styles.avatarContainer}>
-                <Avatar id={avatarId} size={48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
-            </View>
             <View style={styles.sessionContent}>
                 {/* Title line */}
                 <View style={styles.sessionTitleRow}>

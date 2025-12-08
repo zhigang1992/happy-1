@@ -3,9 +3,7 @@ import { View, Pressable, FlatList } from 'react-native';
 import { Text } from '@/components/StyledText';
 import { usePathname } from 'expo-router';
 import { SessionListViewItem } from '@/sync/storage';
-import { Ionicons } from '@expo/vector-icons';
-import { getSessionName, useSessionStatus, getSessionSubtitle, getSessionAvatarId, formatLastSeen } from '@/utils/sessionUtils';
-import { Avatar } from './Avatar';
+import { getSessionName, useSessionStatus, getSessionSubtitle, formatLastSeen } from '@/utils/sessionUtils';
 import { ActiveSessionsGroup } from './ActiveSessionsGroup';
 import { ActiveSessionsGroupCompact } from './ActiveSessionsGroupCompact';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -68,7 +66,7 @@ const stylesheet = StyleSheet.create((theme) => ({
         ...Typography.default(),
     },
     sessionItem: {
-        height: 88,
+        height: 78,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
@@ -82,7 +80,6 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     sessionContent: {
         flex: 1,
-        marginLeft: 16,
         justifyContent: 'center',
     },
     sessionTitleRow: {
@@ -130,23 +127,6 @@ const stylesheet = StyleSheet.create((theme) => ({
         fontWeight: '500',
         lineHeight: 16,
         ...Typography.default(),
-    },
-    avatarContainer: {
-        position: 'relative',
-        width: 48,
-        height: 48,
-    },
-    draftIconContainer: {
-        position: 'absolute',
-        bottom: -2,
-        right: -2,
-        width: 18,
-        height: 18,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    draftIconOverlay: {
-        color: theme.colors.textSecondary,
     },
     artifactsSection: {
         paddingHorizontal: 16,
@@ -349,10 +329,6 @@ const SessionItem = React.memo(({ session, selected }: {
     const navigateToSession = useNavigateToSession();
     const isTablet = useIsTablet();
 
-    const avatarId = React.useMemo(() => {
-        return getSessionAvatarId(session);
-    }, [session]);
-
     // Format the last message time (fall back to createdAt if no messages yet)
     const lastUpdatedText = React.useMemo(() => {
         const timestamp = session.lastMessageAt ?? session.createdAt;
@@ -376,18 +352,6 @@ const SessionItem = React.memo(({ session, selected }: {
                 }
             }}
         >
-            <View style={styles.avatarContainer}>
-                <Avatar id={avatarId} size={48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
-                {session.draft && (
-                    <View style={styles.draftIconContainer}>
-                        <Ionicons
-                            name="create-outline"
-                            size={12}
-                            style={styles.draftIconOverlay}
-                        />
-                    </View>
-                )}
-            </View>
             <View style={styles.sessionContent}>
                 {/* Title line with last updated time */}
                 <View style={styles.sessionTitleRow}>
