@@ -12,6 +12,7 @@ import { StatusDot } from './StatusDot';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
 import { layout } from './layout';
+import { UpdateBanner } from './UpdateBanner';
 
 const stylesheet = StyleSheet.create((theme) => ({
     container: {
@@ -234,6 +235,8 @@ export const SessionsListWrapper = React.memo(() => {
                     headerTransparent={true}
                 />
             </View>
+
+            <UpdateBanner />
 
             {sessionListViewData === null ? (
                 <View style={styles.loadingContainerWrapper}>
