@@ -59,6 +59,7 @@ function ManualAuthModal({ onClose, onSubmit }: { onClose: () => void; onSubmit:
                 placeholderTextColor={theme.colors.input.placeholder}
                 autoCapitalize="none"
                 autoCorrect={false}
+                spellCheck={false}
                 autoFocus
             />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>

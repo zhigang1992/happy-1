@@ -71,6 +71,7 @@ export default function LanguageSelectionScreen() {
                         onChangeText={setSearchQuery}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        spellCheck={false}
                     />
                     {searchQuery.length > 0 && (
                         <Ionicons 

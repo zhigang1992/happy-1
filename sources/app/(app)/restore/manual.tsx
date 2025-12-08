@@ -162,6 +162,7 @@ export default function Restore() {
                         onChangeText={setRestoreKey}
                         autoCapitalize="characters"
                         autoCorrect={false}
+                        spellCheck={false}
                         multiline={true}
                         numberOfLines={4}
                     />

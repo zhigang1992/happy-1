@@ -154,6 +154,7 @@ export default function PurchasesDevScreen() {
                             editable={!isPurchasing}
                             autoCapitalize="none"
                             autoCorrect={false}
+                            spellCheck={false}
                         />
                         <Item
                             title={isPurchasing ? "Purchasing..." : "Purchase"}

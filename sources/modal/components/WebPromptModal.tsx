@@ -141,6 +141,7 @@ export function WebPromptModal({ config, onClose, onConfirm }: WebPromptModalPro
                         secureTextEntry={config.inputType === 'secure-text'}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        spellCheck={false}
                         autoFocus={Platform.OS === 'web'}
                         onSubmitEditing={handleConfirm}
                         returnKeyType="done"

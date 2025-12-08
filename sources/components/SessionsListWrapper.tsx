@@ -284,6 +284,7 @@ export const SessionsListWrapper = React.memo(() => {
                                 onChangeText={setSearchQuery}
                                 autoCapitalize="none"
                                 autoCorrect={false}
+                                spellCheck={false}
                                 returnKeyType="search"
                                 clearButtonMode="while-editing"
                             />

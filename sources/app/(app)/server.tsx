@@ -304,6 +304,7 @@ export default function ServerConfigScreen() {
                                 placeholderTextColor={theme.colors.input.placeholder}
                                 autoCapitalize="none"
                                 autoCorrect={false}
+                                spellCheck={false}
                                 keyboardType="url"
                                 editable={!isValidating}
                             />

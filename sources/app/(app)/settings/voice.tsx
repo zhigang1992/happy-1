@@ -216,6 +216,7 @@ function VoiceSettingsScreen() {
                                 placeholderTextColor={theme.colors.input.placeholder}
                                 autoCapitalize="none"
                                 autoCorrect={false}
+                                spellCheck={false}
                                 secureTextEntry={!showApiKey}
                             />
                             <Pressable
@@ -241,6 +242,7 @@ function VoiceSettingsScreen() {
                             placeholderTextColor={theme.colors.input.placeholder}
                             autoCapitalize="none"
                             autoCorrect={false}
+                            spellCheck={false}
                         />
 
                         {/* Buttons for Find Agent and Create/Update Agent */}

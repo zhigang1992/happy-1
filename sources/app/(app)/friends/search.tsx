@@ -87,6 +87,7 @@ export default function SearchFriendsScreen() {
                             onChangeText={setSearchQuery}
                             autoCapitalize="none"
                             autoCorrect={false}
+                            spellCheck={false}
                             returnKeyType="search"
                             editable={!processingUserId}
                         />

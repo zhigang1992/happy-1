@@ -92,6 +92,7 @@ export const ConnectButton = React.memo(() => {
                             placeholderTextColor="#999"
                             autoCapitalize="none"
                             autoCorrect={false}
+                            spellCheck={false}
                             onSubmitEditing={handleManualConnect}
                         />
                         <TouchableOpacity

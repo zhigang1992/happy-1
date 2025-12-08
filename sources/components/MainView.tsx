@@ -126,6 +126,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
                         onChangeText={setSearchQuery}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        spellCheck={false}
                         returnKeyType="search"
                     />
                 </View>

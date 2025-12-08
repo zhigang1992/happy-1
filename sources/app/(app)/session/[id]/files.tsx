@@ -184,6 +184,7 @@ export default function FilesScreen() {
                         placeholderTextColor={theme.colors.input.placeholder}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        spellCheck={false}
                     />
                 </View>
             </View>

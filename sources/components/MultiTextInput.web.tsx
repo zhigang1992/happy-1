@@ -193,7 +193,8 @@ export const MultiTextInput = React.forwardRef<MultiTextInputHandle, MultiTextIn
                 onKeyDown={handleKeyDown}
                 maxRows={maxRows}
                 autoCapitalize="sentences"
-                autoCorrect="on"
+                autoCorrect="off"
+                spellCheck="false"
                 autoComplete="off"
             />
         </View>

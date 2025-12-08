@@ -35,6 +35,7 @@ export function CommandPaletteInput({ value, onChangeText, onKeyPress, inputRef 
                 placeholderTextColor="#999"
                 autoFocus
                 autoCorrect={false}
+                spellCheck={false}
                 autoCapitalize="none"
                 returnKeyType="go"
                 onKeyPress={handleKeyDown}
