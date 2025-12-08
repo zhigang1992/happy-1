@@ -64,7 +64,12 @@ export const MarkdownView = React.memo((props: {
                     } else if (block.type === 'options') {
                         return <RenderOptionsBlock items={block.items} key={index} first={index === 0} last={index === blocks.length - 1} selectable={selectable} onOptionPress={props.onOptionPress} />;
                     } else if (block.type === 'table') {
-                        return <RenderTableBlock headers={block.headers} rows={block.rows} key={index} first={index === 0} last={index === blocks.length - 1} />;
+                        if (Platform.OS === 'web') {
+                            return <RenderTableBlock headers={block.headers} rows={block.rows} key={index} first={index === 0} last={index === blocks.length - 1} />;
+                        }
+                        // On native, render table as plain text for now
+                        const tableText = [block.headers.join(' | '), ...block.rows.map(row => row.join(' | '))].join('\n');
+                        return <RenderTextBlock spans={[{ text: tableText, styles: [], url: null }]} key={index} first={index === 0} last={index === blocks.length - 1} selectable={selectable} />;
                     } else {
                         return null;
                     }
