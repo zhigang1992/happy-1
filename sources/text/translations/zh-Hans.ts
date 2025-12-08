@@ -49,6 +49,7 @@ export const zhHans: TranslationStructure = {
         no: '否',
         discard: '放弃',
         version: '版本',
+        otaVersion: 'OTA 版本',
         copied: '已复制',
         copy: '复制',
         scanning: '扫描中...',

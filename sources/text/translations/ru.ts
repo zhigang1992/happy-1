@@ -58,6 +58,7 @@ export const ru: TranslationStructure = {
         no: 'Нет',
         discard: 'Отменить',
         version: 'Версия',
+        otaVersion: 'OTA версия',
         copied: 'Скопировано',
         copy: 'Копировать',
         scanning: 'Сканирование...',

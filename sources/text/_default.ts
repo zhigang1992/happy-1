@@ -47,6 +47,7 @@ export const en = {
         no: 'No',
         discard: 'Discard',
         version: 'Version',
+        otaVersion: 'OTA Version',
         copied: 'Copied',
         copy: 'Copy',
         scanning: 'Scanning...',

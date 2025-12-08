@@ -5,6 +5,7 @@ import { Text } from '@/components/StyledText';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { useAuth } from '@/auth/AuthContext';
 import { Typography } from "@/constants/Typography";
 import { Item } from '@/components/Item';
@@ -481,6 +482,20 @@ export const SettingsView = React.memo(function SettingsView() {
                     onPress={handleVersionClick}
                     showChevron={false}
                 />
+                {Updates.createdAt && (
+                    <Item
+                        title={t('common.otaVersion')}
+                        detail={Updates.createdAt.toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                        icon={<Ionicons name="cloud-download-outline" size={29} color={theme.colors.textSecondary} />}
+                        showChevron={false}
+                    />
+                )}
             </ItemGroup>
 
         </ItemList>

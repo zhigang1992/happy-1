@@ -47,6 +47,7 @@ export const es: TranslationStructure = {
         no: 'No',
         discard: 'Descartar',
         version: 'Versión',
+        otaVersion: 'Versión OTA',
         copied: 'Copiado',
         copy: 'Copiar',
         scanning: 'Escaneando...',
