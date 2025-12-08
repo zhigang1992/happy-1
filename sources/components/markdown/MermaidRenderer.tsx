@@ -109,13 +109,20 @@ export const MermaidRenderer = React.memo((props: {
         <html>
         <head>
             <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
             <style>
-                body {
+                * {
+                    box-sizing: border-box;
+                }
+                html, body {
                     margin: 0;
-                    padding: 16px;
+                    padding: 0;
                     background-color: ${theme.colors.surfaceHighest};
+                    overflow: hidden;
+                }
+                body {
+                    padding: 16px;
                 }
                 #mermaid-container {
                     display: flex;
@@ -131,6 +138,12 @@ export const MermaidRenderer = React.memo((props: {
                     max-width: 100%;
                     height: auto;
                 }
+                .error {
+                    color: #ff6b6b;
+                    font-family: monospace;
+                    padding: 16px;
+                    white-space: pre-wrap;
+                }
             </style>
         </head>
         <body>
@@ -138,9 +151,23 @@ export const MermaidRenderer = React.memo((props: {
                 ${props.content}
             </div>
             <script>
+                function sendHeight() {
+                    const container = document.getElementById('mermaid-container');
+                    const height = container ? container.offsetHeight + 32 : 200;
+                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'dimensions', height: height }));
+                }
+
                 mermaid.initialize({
-                    startOnLoad: true,
-                    theme: 'dark'
+                    startOnLoad: false,
+                    theme: 'dark',
+                    securityLevel: 'loose'
+                });
+
+                mermaid.run().then(function() {
+                    setTimeout(sendHeight, 100);
+                }).catch(function(err) {
+                    document.getElementById('mermaid-container').innerHTML = '<div class="error">Mermaid error: ' + err.message + '</div>';
+                    sendHeight();
                 });
             </script>
         </body>
@@ -152,15 +179,22 @@ export const MermaidRenderer = React.memo((props: {
             <View style={[style.innerContainer, { height: dimensions.height }]}>
                 <WebView
                     source={{ html }}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, backgroundColor: 'transparent' }}
                     scrollEnabled={false}
+                    originWhitelist={['*']}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
                     onMessage={(event) => {
-                        const data = JSON.parse(event.nativeEvent.data);
-                        if (data.type === 'dimensions') {
-                            setDimensions(prev => ({
-                                ...prev,
-                                height: Math.max(prev.height, data.height)
-                            }));
+                        try {
+                            const data = JSON.parse(event.nativeEvent.data);
+                            if (data.type === 'dimensions') {
+                                setDimensions(prev => ({
+                                    ...prev,
+                                    height: Math.max(100, data.height)
+                                }));
+                            }
+                        } catch (e) {
+                            console.warn('[MermaidRenderer] Failed to parse message:', e);
                         }
                     }}
                 />
