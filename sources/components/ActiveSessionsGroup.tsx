@@ -230,8 +230,8 @@ export function ActiveSessionsGroup({ sessions, selectedSessionId }: ActiveSessi
     );
 }
 
-// Flat session row component with subtitle and timestamp
-const FlatSessionRow = React.memo(({ session, selected }: { session: Session; selected?: boolean }) => {
+// Flat session row component with subtitle and timestamp - exported for use in SessionsList
+export const FlatSessionRow = React.memo(({ session, selected }: { session: Session; selected?: boolean }) => {
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
     const sessionName = getSessionName(session);

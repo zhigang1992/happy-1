@@ -1,27 +1,18 @@
 import React from 'react';
-import { View, Pressable, FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { Text } from '@/components/StyledText';
 import { usePathname } from 'expo-router';
-import { SessionListViewItem } from '@/sync/storage';
-import { getSessionName, useSessionStatus, getSessionSubtitle, formatLastSeen } from '@/utils/sessionUtils';
-import { ActiveSessionsGroup } from './ActiveSessionsGroup';
+import { SessionListViewItem, useSetting } from '@/sync/storage';
+import { getSessionName, getSessionSubtitle } from '@/utils/sessionUtils';
+import { ActiveSessionsGroup, FlatSessionRow } from './ActiveSessionsGroup';
 import { ActiveSessionsGroupCompact } from './ActiveSessionsGroupCompact';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSetting, useMachine } from '@/sync/storage';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
 import { Typography } from '@/constants/Typography';
-import { Session } from '@/sync/storageTypes';
-import { StatusDot } from './StatusDot';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { useIsTablet } from '@/utils/responsive';
 import { requestReview } from '@/utils/requestReview';
-import { UpdateBanner } from './UpdateBanner';
 import { layout } from './layout';
-import { useNavigateToSession } from '@/hooks/useNavigateToSession';
-import { t } from '@/text';
-import { useRouter } from 'expo-router';
-import { Item } from './Item';
-import { ItemGroup } from './ItemGroup';
 
 const stylesheet = StyleSheet.create((theme) => ({
     container: {
@@ -65,90 +56,6 @@ const stylesheet = StyleSheet.create((theme) => ({
         marginTop: 2,
         ...Typography.default(),
     },
-    sessionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: theme.colors.surface,
-        marginHorizontal: 16,
-        marginBottom: 8,
-        borderRadius: 12,
-    },
-    sessionItemSelected: {
-        backgroundColor: theme.colors.surfaceSelected,
-    },
-    sessionContent: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    sessionTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    sessionTitle: {
-        fontSize: 15,
-        fontWeight: '500',
-        flex: 1,
-        ...Typography.default('semiBold'),
-    },
-    sessionTitleConnected: {
-        color: theme.colors.text,
-    },
-    sessionTitleDisconnected: {
-        color: theme.colors.textSecondary,
-    },
-    sessionSubtitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 2,
-    },
-    sessionMachineName: {
-        fontSize: 13,
-        color: theme.colors.text,
-        ...Typography.default(),
-    },
-    sessionSubtitleSeparator: {
-        fontSize: 13,
-        color: theme.colors.textSecondary,
-        marginHorizontal: 4,
-        ...Typography.default(),
-    },
-    sessionSubtitle: {
-        fontSize: 13,
-        color: theme.colors.textSecondary,
-        flex: 1,
-        ...Typography.default(),
-    },
-    statusRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    statusDotContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 16,
-        marginTop: 2,
-        marginRight: 4,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '500',
-        lineHeight: 16,
-        ...Typography.default(),
-    },
-    statusTimestamp: {
-        fontSize: 12,
-        color: theme.colors.textSecondary,
-        lineHeight: 16,
-        ...Typography.default(),
-    },
-    artifactsSection: {
-        paddingHorizontal: 16,
-        paddingBottom: 12,
-        backgroundColor: theme.colors.groupped.background,
-    },
 }));
 
 interface SessionsListProps {
@@ -161,11 +68,8 @@ export function SessionsList({ searchQuery = '' }: SessionsListProps) {
     const rawData = useVisibleSessionListViewData();
     const pathname = usePathname();
     const isTablet = useIsTablet();
-    const navigateToSession = useNavigateToSession();
     const compactSessionView = useSetting('compactSessionView');
-    const router = useRouter();
     const selectable = isTablet;
-    const experiments = useSetting('experiments');
 
     // Filter data based on search query (local filtering)
     const data = React.useMemo(() => {
@@ -294,7 +198,7 @@ export function SessionsList({ searchQuery = '' }: SessionsListProps) {
 
             case 'session':
                 return (
-                    <SessionItem
+                    <FlatSessionRow
                         session={item.session}
                         selected={item.selected}
                     />
@@ -332,91 +236,4 @@ export function SessionsList({ searchQuery = '' }: SessionsListProps) {
         </View>
     );
 }
-
-// Sub-component that handles session message logic
-const SessionItem = React.memo(({ session, selected }: {
-    session: Session;
-    selected?: boolean;
-}) => {
-    const styles = stylesheet;
-    const sessionStatus = useSessionStatus(session);
-    const sessionName = getSessionName(session);
-    const sessionSubtitle = getSessionSubtitle(session);
-    const navigateToSession = useNavigateToSession();
-    const isTablet = useIsTablet();
-
-    // Get machine for display name
-    const machine = useMachine(session.metadata?.machineId || '');
-
-    // Get machine name: prefer displayName, fall back to host
-    const machineName = machine?.metadata?.displayName || session.metadata?.host || '';
-
-    // Format the last message time (fall back to createdAt if no messages yet)
-    const lastUpdatedText = React.useMemo(() => {
-        const timestamp = session.lastMessageAt ?? session.createdAt;
-        return formatLastSeen(timestamp, false);
-    }, [session.lastMessageAt, session.createdAt]);
-
-    return (
-        <Pressable
-            style={[
-                styles.sessionItem,
-                selected && styles.sessionItemSelected,
-            ]}
-            onPressIn={() => {
-                if (isTablet) {
-                    navigateToSession(session.id);
-                }
-            }}
-            onPress={() => {
-                if (!isTablet) {
-                    navigateToSession(session.id);
-                }
-            }}
-        >
-            <View style={styles.sessionContent}>
-                {/* Line 1: Machine name + path */}
-                <View style={styles.sessionSubtitleRow}>
-                    {machineName ? (
-                        <>
-                            <Text style={styles.sessionMachineName} numberOfLines={1}>
-                                {machineName}
-                            </Text>
-                            <Text style={styles.sessionSubtitleSeparator}>·</Text>
-                        </>
-                    ) : null}
-                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
-                        {sessionSubtitle}
-                    </Text>
-                </View>
-
-                {/* Line 2: Title (up to 2 lines) */}
-                <View style={styles.sessionTitleRow}>
-                    <Text style={[
-                        styles.sessionTitle,
-                        sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected
-                    ]} numberOfLines={2}>
-                        {sessionName}
-                    </Text>
-                </View>
-
-                {/* Line 3: Status with dot + timestamp */}
-                <View style={styles.statusRow}>
-                    <View style={styles.statusDotContainer}>
-                        <StatusDot color={sessionStatus.statusDotColor} isPulsing={sessionStatus.isPulsing} />
-                    </View>
-                    <Text style={[
-                        styles.statusText,
-                        { color: sessionStatus.statusColor }
-                    ]}>
-                        {sessionStatus.statusText}
-                    </Text>
-                    <Text style={styles.statusTimestamp}>
-                        {' · '}{lastUpdatedText}
-                    </Text>
-                </View>
-            </View>
-        </Pressable>
-    );
-});
 
