@@ -202,6 +202,7 @@ export const MultiTextInput = React.forwardRef<MultiTextInputHandle, MultiTextIn
                 multiline={true}
                 autoCapitalize="sentences"
                 autoCorrect={false}
+                spellCheck={false}
                 keyboardType="default"
                 returnKeyType="default"
                 autoComplete="off"
