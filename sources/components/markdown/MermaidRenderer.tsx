@@ -103,71 +103,42 @@ export const MermaidRenderer = React.memo((props: {
         );
     }
 
-    // For iOS/Android, use WebView
+    // For iOS/Android, render WebView with fixed height
     const html = `
         <!DOCTYPE html>
         <html>
         <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
             <style>
-                * {
-                    box-sizing: border-box;
-                }
-                html, body {
-                    margin: 0;
-                    padding: 0;
-                    background-color: ${theme.colors.surfaceHighest};
-                    overflow: hidden;
-                }
                 body {
+                    margin: 0;
                     padding: 16px;
-                }
-                #mermaid-container {
+                    background-color: ${theme.colors.surfaceHighest};
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    width: 100%;
+                    min-height: 100%;
                 }
                 .mermaid {
-                    text-align: center;
-                    width: 100%;
+                    display: flex;
+                    justify-content: center;
                 }
                 .mermaid svg {
                     max-width: 100%;
                     height: auto;
                 }
-                .error {
-                    color: #ff6b6b;
-                    font-family: monospace;
-                    padding: 16px;
-                    white-space: pre-wrap;
-                }
             </style>
         </head>
         <body>
-            <div id="mermaid-container" class="mermaid">
-                ${props.content}
+            <div class="mermaid">
+${props.content}
             </div>
             <script>
-                function sendHeight() {
-                    const container = document.getElementById('mermaid-container');
-                    const height = container ? container.offsetHeight + 32 : 200;
-                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'dimensions', height: height }));
-                }
-
                 mermaid.initialize({
-                    startOnLoad: false,
+                    startOnLoad: true,
                     theme: 'dark',
                     securityLevel: 'loose'
-                });
-
-                mermaid.run().then(function() {
-                    setTimeout(sendHeight, 100);
-                }).catch(function(err) {
-                    document.getElementById('mermaid-container').innerHTML = '<div class="error">Mermaid error: ' + err.message + '</div>';
-                    sendHeight();
                 });
             </script>
         </body>
@@ -175,31 +146,12 @@ export const MermaidRenderer = React.memo((props: {
     `;
 
     return (
-        <View style={style.container} onLayout={onLayout}>
-            <View style={[style.innerContainer, { height: dimensions.height }]}>
-                <WebView
-                    source={{ html }}
-                    style={{ flex: 1, backgroundColor: 'transparent' }}
-                    scrollEnabled={false}
-                    originWhitelist={['*']}
-                    javaScriptEnabled={true}
-                    domStorageEnabled={true}
-                    onMessage={(event) => {
-                        try {
-                            const data = JSON.parse(event.nativeEvent.data);
-                            if (data.type === 'dimensions') {
-                                setDimensions(prev => ({
-                                    ...prev,
-                                    height: Math.max(100, data.height)
-                                }));
-                            }
-                        } catch (e) {
-                            console.warn('[MermaidRenderer] Failed to parse message:', e);
-                        }
-                    }}
-                />
-            </View>
-        </View>
+        <WebView
+            source={{ html }}
+            style={{ height: 400, backgroundColor: theme.colors.surfaceHighest }}
+            scrollEnabled={true}
+            originWhitelist={['*']}
+        />
     );
 });
 
@@ -248,5 +200,21 @@ const style = StyleSheet.create((theme) => ({
         color: theme.colors.text,
         fontSize: 14,
         lineHeight: 20,
+    },
+    debugContainer: {
+        backgroundColor: theme.colors.surfaceHighest,
+        borderRadius: 8,
+        padding: 16,
+        gap: 8,
+    },
+    debugTitle: {
+        ...Typography.default('semiBold'),
+        color: theme.colors.text,
+        fontSize: 16,
+    },
+    debugInfo: {
+        ...Typography.mono(),
+        color: theme.colors.textSecondary,
+        fontSize: 12,
     },
 }));
