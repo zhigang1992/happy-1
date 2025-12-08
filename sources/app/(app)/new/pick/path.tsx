@@ -122,9 +122,9 @@ export default function PathPickerScreen() {
 
     const handleSelectPath = React.useCallback(() => {
         const pathToUse = customPath.trim() || machine?.metadata?.homeDir || '/home';
-        // Navigate back to /new with the selected path as a param
-        // Include machineId to preserve the machine selection
-        router.navigate({
+        // Dismiss back to /new with the selected path as a param
+        // dismissTo unwinds the stack to the target route instead of pushing
+        router.dismissTo({
             pathname: '/new',
             params: {
                 selectedPathParam: pathToUse,

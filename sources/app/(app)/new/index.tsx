@@ -223,7 +223,7 @@ function NewSessionScreen() {
     }, []);
 
     const handleMachineClick = React.useCallback(() => {
-        router.push('/new/pick/machine');
+        router.navigate('/new/pick/machine');
     }, []);
 
     //
@@ -321,7 +321,7 @@ function NewSessionScreen() {
     });
     const handlePathClick = React.useCallback(() => {
         if (selectedMachineId) {
-            router.push(`/new/pick/path?machineId=${selectedMachineId}`);
+            router.navigate(`/new/pick/path?machineId=${selectedMachineId}`);
         }
     }, [selectedMachineId, router]);
 

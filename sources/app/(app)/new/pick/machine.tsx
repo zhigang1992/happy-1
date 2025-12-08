@@ -111,9 +111,9 @@ export default function MachinePickerScreen() {
     const serverUrl = getServerUrl();
 
     const handleSelectMachine = (machineId: string) => {
-        // Navigate back to /new with the selected machine ID as a param
-        // This is more reliable than the callback pattern which can have stale closures
-        router.navigate({
+        // Dismiss back to /new with the selected machine ID as a param
+        // dismissTo unwinds the stack to the target route instead of pushing
+        router.dismissTo({
             pathname: '/new',
             params: { selectedMachineId: machineId }
         });
