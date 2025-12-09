@@ -167,6 +167,13 @@ export function parseMarkdownBlock(markdown: string) {
             }
         }
 
+        // Check for image: ![alt](url)
+        const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+        if (imageMatch) {
+            blocks.push({ type: 'image', alt: imageMatch[1], url: imageMatch[2] });
+            continue;
+        }
+
         // Fallback
         if (trimmed.length > 0) {
             blocks.push({ type: 'text', content: parseMarkdownSpans(trimmed, false) });

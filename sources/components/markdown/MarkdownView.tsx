@@ -12,6 +12,7 @@ import { storeTempText } from '@/sync/persistence';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { MermaidRenderer } from './MermaidRenderer';
+import { MarkdownImage } from './MarkdownImage';
 import { t } from '@/text';
 
 // Option type for callback
@@ -65,6 +66,8 @@ export const MarkdownView = React.memo((props: {
                         return <RenderOptionsBlock items={block.items} key={index} first={index === 0} last={index === blocks.length - 1} selectable={selectable} onOptionPress={props.onOptionPress} />;
                     } else if (block.type === 'table') {
                         return <RenderTableBlock headers={block.headers} rows={block.rows} key={index} first={index === 0} last={index === blocks.length - 1} />;
+                    } else if (block.type === 'image') {
+                        return <MarkdownImage url={block.url} alt={block.alt} key={index} />;
                     } else {
                         return null;
                     }
