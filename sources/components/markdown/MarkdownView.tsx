@@ -1,4 +1,5 @@
 import { MarkdownSpan, parseMarkdown } from './parseMarkdown';
+import { parseMarkdownSpans } from './parseMarkdownSpans';
 import { Link } from 'expo-router';
 import * as React from 'react';
 import { Pressable, ScrollView, View, Platform } from 'react-native';
@@ -229,7 +230,9 @@ function RenderTableBlock(props: {
                     <View style={style.tableRow}>
                         {props.headers.map((header, index) => (
                             <View key={`header-${index}`} style={[style.tableCell, style.tableHeaderCell]}>
-                                <Text style={style.tableHeaderText}>{header}</Text>
+                                <Text style={style.tableHeaderText}>
+                                    <RenderSpans spans={parseMarkdownSpans(header, false)} baseStyle={style.tableHeaderText} />
+                                </Text>
                             </View>
                         ))}
                     </View>
@@ -237,7 +240,9 @@ function RenderTableBlock(props: {
                         <View key={`row-${rowIndex}`} style={style.tableRow}>
                             {row.map((cell, cellIndex) => (
                                 <View key={`cell-${rowIndex}-${cellIndex}`} style={style.tableCell}>
-                                    <Text style={style.tableCellText}>{cell}</Text>
+                                    <Text style={style.tableCellText}>
+                                        <RenderSpans spans={parseMarkdownSpans(cell, false)} baseStyle={style.tableCellText} />
+                                    </Text>
                                 </View>
                             ))}
                         </View>
