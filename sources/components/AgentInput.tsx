@@ -73,6 +73,7 @@ interface AgentInputProps {
     onRemoveImageAttachment?: (id: string) => void;
     onPickImage?: () => void;
     uploadingImageIds?: Set<string>;
+    onPaste?: (event: ClipboardEvent) => void;
 }
 
 const MAX_CONTEXT_SIZE = 190000;
@@ -816,6 +817,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             onKeyPress={handleKeyPress}
                             onStateChange={handleInputStateChange}
                             maxHeight={120}
+                            onPaste={props.onPaste}
                         />
                     </View>
 

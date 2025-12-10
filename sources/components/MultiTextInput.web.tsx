@@ -39,6 +39,7 @@ interface MultiTextInputProps {
     onKeyPress?: OnKeyPressCallback;
     onSelectionChange?: (selection: { start: number; end: number }) => void;
     onStateChange?: (state: TextInputState) => void;
+    onPaste?: (event: ClipboardEvent) => void;
 }
 
 export const MultiTextInput = React.forwardRef<MultiTextInputHandle, MultiTextInputProps>((props, ref) => {
@@ -49,11 +50,27 @@ export const MultiTextInput = React.forwardRef<MultiTextInputHandle, MultiTextIn
         maxHeight = 120,
         onKeyPress,
         onSelectionChange,
-        onStateChange
+        onStateChange,
+        onPaste
     } = props;
-    
+
     const { theme } = useUnistyles();
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+    // Set up paste event listener
+    React.useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea || !onPaste) return;
+
+        const handlePaste = (e: ClipboardEvent) => {
+            onPaste(e);
+        };
+
+        textarea.addEventListener('paste', handlePaste);
+        return () => {
+            textarea.removeEventListener('paste', handlePaste);
+        };
+    }, [onPaste]);
 
     // Convert maxHeight to approximate maxRows (assuming ~24px line height)
     const maxRows = Math.floor(maxHeight / 24);
