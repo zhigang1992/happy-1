@@ -8,6 +8,7 @@ import { Deferred } from '@/components/Deferred';
 import { EmptyMessages } from '@/components/EmptyMessages';
 import { VoiceAssistantStatusBar } from '@/components/VoiceAssistantStatusBar';
 import { useDraft } from '@/hooks/useDraft';
+import { useImageAttachments } from '@/hooks/useImageAttachments';
 import { Modal } from '@/modal';
 import { voiceHooks } from '@/realtime/hooks/voiceHooks';
 import { startRealtimeSession, stopRealtimeSession, updateCurrentSessionId } from '@/realtime/RealtimeSession';
@@ -177,6 +178,17 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
     // Use draft hook for auto-saving message drafts
     const { clearDraft } = useDraft(sessionId, message, setMessage);
 
+    // Image attachments state
+    const {
+        attachments: imageAttachments,
+        removeAttachment: removeImageAttachment,
+        clearAttachments: clearImageAttachments,
+        pickImage,
+        handlePaste,
+    } = useImageAttachments();
+    const [uploadingImageIds, setUploadingImageIds] = React.useState<Set<string>>(new Set());
+    const [isSending, setIsSending] = React.useState(false);
+
     // Handle dismissing CLI version warning
     const handleDismissCliWarning = React.useCallback(() => {
         if (machineId && cliVersion) {
@@ -283,6 +295,56 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
         </>
     ) : null;
 
+    // Handle sending message (with or without images)
+    const handleSend = React.useCallback(async () => {
+        const hasText = message.trim().length > 0;
+        const hasImages = imageAttachments.length > 0;
+
+        if (!hasText && !hasImages) return;
+
+        const currentMessage = message;
+        const currentImages = [...imageAttachments];
+
+        // Clear input immediately for better UX
+        setMessage('');
+        clearDraft();
+        clearImageAttachments();
+
+        if (hasImages) {
+            // Send with images
+            setIsSending(true);
+            setUploadingImageIds(new Set(currentImages.map(img => img.id)));
+
+            try {
+                const result = await sync.sendMessageWithImages(
+                    sessionId,
+                    currentMessage,
+                    currentImages,
+                    (imageId) => {
+                        // Remove from uploading set as each image completes
+                        setUploadingImageIds(prev => {
+                            const next = new Set(prev);
+                            next.delete(imageId);
+                            return next;
+                        });
+                    }
+                );
+
+                if (!result.success && result.errors.length > 0) {
+                    Modal.alert(t('common.error'), result.errors.join('\n'));
+                }
+            } finally {
+                setIsSending(false);
+                setUploadingImageIds(new Set());
+            }
+        } else {
+            // Send text-only message
+            sync.sendMessage(sessionId, currentMessage);
+        }
+
+        trackMessageSent();
+    }, [message, imageAttachments, sessionId, clearDraft, clearImageAttachments]);
+
     const input = (
         <AgentInput
             placeholder={t('session.inputPlaceholder')}
@@ -300,14 +362,8 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
                 dotColor: sessionStatus.statusDotColor,
                 isPulsing: sessionStatus.isPulsing
             }}
-            onSend={() => {
-                if (message.trim()) {
-                    setMessage('');
-                    clearDraft();
-                    sync.sendMessage(sessionId, message);
-                    trackMessageSent();
-                }
-            }}
+            onSend={handleSend}
+            isSending={isSending}
             onMicPress={micButtonState.onMicPress}
             isMicActive={micButtonState.isMicActive}
             onAbort={() => sessionAbort(sessionId)}
@@ -331,6 +387,12 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
                 contextSize: session.latestUsage.contextSize
             } : undefined}
             alwaysShowContextSize={alwaysShowContextSize}
+            // Image attachment props
+            imageAttachments={imageAttachments}
+            onRemoveImageAttachment={removeImageAttachment}
+            onPickImage={pickImage}
+            uploadingImageIds={uploadingImageIds}
+            onPaste={handlePaste}
         />
     );
 

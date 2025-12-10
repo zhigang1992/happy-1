@@ -10,6 +10,7 @@ import { ToolView } from "./tools/ToolView";
 import { AgentEvent } from "@/sync/typesRaw";
 import { sync } from '@/sync/sync';
 import { Option } from './markdown/MarkdownView';
+import { MessageImage } from './MessageImage';
 
 export const MessageView = (props: {
   message: Message;
@@ -72,13 +73,26 @@ function UserTextBlock(props: {
     sync.sendMessage(props.sessionId, option.title);
   }, [props.sessionId]);
 
+  const hasImages = props.message.images && props.message.images.length > 0;
+  const hasText = props.message.text.length > 0;
+
   return (
     <View style={styles.userMessageContainer}>
       <View style={styles.userMessageBubble}>
-        <MarkdownView markdown={props.message.displayText || props.message.text} onOptionPress={handleOptionPress} />
-        {/* {__DEV__ && (
-          <Text style={styles.debugText}>{JSON.stringify(props.message.meta)}</Text>
-        )} */}
+        {hasText && (
+          <MarkdownView markdown={props.message.displayText || props.message.text} onOptionPress={handleOptionPress} />
+        )}
+        {hasImages && (
+          <View style={styles.imagesContainer}>
+            {props.message.images!.map((image) => (
+              <MessageImage
+                key={image.blobId}
+                image={image}
+                sessionId={props.sessionId}
+              />
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -189,6 +203,11 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 12,
     marginBottom: 12,
     maxWidth: '100%',
+  },
+  imagesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   agentMessageContainer: {
     marginHorizontal: 16,

@@ -40,6 +40,8 @@ import { FeedItem } from './feedTypes';
 import { UserProfile } from './friendTypes';
 import { initializeTodoSync } from '../-zen/model/ops';
 import { Toast } from '@/toast';
+import { uploadBlob, downloadBlob } from './apiBlobs';
+import { ImageAttachment } from '@/hooks/useImageAttachments';
 
 class Sync {
     // Spawned agents (especially in spawn mode) can take noticeable time to connect.
@@ -320,6 +322,212 @@ class Sync {
         // Aggressively sync messages - invalidate to force a fresh fetch
         // This ensures the client gets the latest messages immediately, even if it fell behind
         this.onSessionVisible(sessionId);
+    }
+
+    /**
+     * Send a message with image attachments.
+     * Images are encrypted and uploaded as blobs, then referenced in the message.
+     *
+     * @param sessionId - The session to send the message to
+     * @param text - The text content of the message
+     * @param images - Array of image attachments to include
+     * @param onImageUploaded - Optional callback called when each image is uploaded (for progress tracking)
+     * @returns Object with success status and any upload errors
+     */
+    async sendMessageWithImages(
+        sessionId: string,
+        text: string,
+        images: ImageAttachment[],
+        onImageUploaded?: (imageId: string) => void
+    ): Promise<{ success: boolean; errors: string[] }> {
+        const errors: string[] = [];
+
+        // Get encryption
+        const encryption = this.encryption.getSessionEncryption(sessionId);
+        if (!encryption) {
+            return { success: false, errors: ['Session encryption not available'] };
+        }
+
+        // Upload and encrypt each image
+        const imageRefs: Array<{
+            type: 'image_ref';
+            blobId: string;
+            mimeType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+            width?: number;
+            height?: number;
+        }> = [];
+
+        for (const image of images) {
+            try {
+                // Encrypt the image data
+                const encryptedData = await encryption.encryptBlob(image.data);
+
+                // Upload the encrypted blob
+                const result = await uploadBlob(
+                    sessionId,
+                    encryptedData,
+                    image.mimeType,
+                    image.data.length
+                );
+
+                if (result) {
+                    imageRefs.push({
+                        type: 'image_ref',
+                        blobId: result.blobId,
+                        mimeType: image.mimeType,
+                        width: image.width || undefined,
+                        height: image.height || undefined,
+                    });
+                    onImageUploaded?.(image.id);
+                } else {
+                    errors.push(`Failed to upload image ${image.id}`);
+                }
+            } catch (error) {
+                errors.push(`Error uploading image ${image.id}: ${error}`);
+            }
+        }
+
+        // If no images were uploaded successfully, don't send the message
+        if (imageRefs.length === 0 && images.length > 0) {
+            return { success: false, errors };
+        }
+
+        // Get session data from storage
+        const session = storage.getState().sessions[sessionId];
+        if (!session) {
+            return { success: false, errors: ['Session not found'] };
+        }
+
+        // Read permission mode and model mode from session state
+        const isCodex = session.metadata?.flavor === 'codex';
+        const defaultPermissionMode = isCodex ? 'yolo' : 'bypassPermissions';
+        const permissionMode = session.permissionMode || defaultPermissionMode;
+        const modelMode = session.modelMode || 'default';
+
+        // Generate local ID
+        const localId = randomUUID();
+
+        // Determine sentFrom based on platform
+        let sentFrom: string;
+        if (Platform.OS === 'web') {
+            sentFrom = 'web';
+        } else if (Platform.OS === 'android') {
+            sentFrom = 'android';
+        } else if (Platform.OS === 'ios') {
+            if (isRunningOnMac()) {
+                sentFrom = 'mac';
+            } else {
+                sentFrom = 'ios';
+            }
+        } else {
+            sentFrom = 'web';
+        }
+
+        // Resolve model settings
+        let model: string | null = null;
+        let fallbackModel: string | null = null;
+        switch (modelMode) {
+            case 'adaptiveUsage':
+                model = 'claude-opus-4-1-20250805';
+                fallbackModel = 'claude-sonnet-4-5-20250929';
+                break;
+            case 'sonnet':
+                model = 'claude-sonnet-4-5-20250929';
+                break;
+            case 'opus':
+                model = 'claude-opus-4-1-20250805';
+                break;
+        }
+
+        // Build content array: image refs first, then text
+        // Use proper union type to match the schema
+        type ContentItem =
+            | { type: 'text'; text: string }
+            | { type: 'image_ref'; blobId: string; mimeType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'; width?: number; height?: number };
+
+        const contentArray: ContentItem[] = [
+            ...imageRefs,
+            { type: 'text', text }
+        ];
+
+        // Create user message content with metadata
+        const content: RawRecord = {
+            role: 'user',
+            content: contentArray,
+            meta: {
+                sentFrom,
+                permissionMode,
+                model,
+                fallbackModel,
+                appendSystemPrompt: systemPrompt,
+            }
+        };
+
+        const encryptedRawRecord = await encryption.encryptRawRecord(content);
+
+        // Add to messages - normalize the raw record
+        const createdAt = Date.now();
+        const normalizedMessage = normalizeRawMessage(localId, localId, createdAt, content);
+        if (normalizedMessage) {
+            this.applyMessages(sessionId, [normalizedMessage]);
+        }
+
+        const ready = await this.waitForAgentReady(sessionId);
+        if (!ready) {
+            log.log(`Session ${sessionId} not ready after timeout, sending anyway`);
+        }
+
+        // Send message
+        apiSocket.send('message', {
+            sid: sessionId,
+            message: encryptedRawRecord,
+            localId,
+            sentFrom,
+            permissionMode
+        });
+
+        // Aggressively sync messages
+        this.onSessionVisible(sessionId);
+
+        return { success: true, errors };
+    }
+
+    /**
+     * Download and decrypt a blob from the server
+     *
+     * @param sessionId - The session ID the blob belongs to
+     * @param blobId - The blob ID to download
+     * @returns The decrypted blob data and metadata, or null on failure
+     */
+    async downloadAndDecryptBlob(
+        sessionId: string,
+        blobId: string
+    ): Promise<{ data: Uint8Array; mimeType: string } | null> {
+        // Get encryption
+        const encryption = this.encryption.getSessionEncryption(sessionId);
+        if (!encryption) {
+            log.log(`[sync] Session encryption not available for ${sessionId}`);
+            return null;
+        }
+
+        // Download encrypted blob
+        const downloadResult = await downloadBlob(sessionId, blobId);
+        if (!downloadResult) {
+            log.log(`[sync] Failed to download blob ${blobId}`);
+            return null;
+        }
+
+        // Decrypt blob
+        const decryptedData = await encryption.decryptBlob(downloadResult.data);
+        if (!decryptedData) {
+            log.log(`[sync] Failed to decrypt blob ${blobId}`);
+            return null;
+        }
+
+        return {
+            data: decryptedData,
+            mimeType: downloadResult.mimeType,
+        };
     }
 
     applySettings = (delta: Partial<Settings>) => {

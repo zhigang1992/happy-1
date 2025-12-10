@@ -117,6 +117,14 @@ import { AgentState } from "../storageTypes";
 import { MessageMeta } from "../typesMessageMeta";
 import { parseMessageAsEvent } from "./messageToEvent";
 
+// Image reference attached to a message
+export type MessageImageRef = {
+    blobId: string;
+    mimeType: string;
+    width?: number;
+    height?: number;
+};
+
 type ReducerMessage = {
     id: string;
     realID: string | null;
@@ -126,6 +134,7 @@ type ReducerMessage = {
     event: AgentEvent | null;
     tool: ToolCall | null;
     meta?: MessageMeta;
+    images?: MessageImageRef[];
 }
 
 type StoredPermission = {
@@ -593,6 +602,28 @@ export function reducer(state: ReducerState, messages: NormalizedMessage[], agen
                 continue;
             }
 
+            // Extract text and images from content (handles both single text and array with images)
+            let text = '';
+            let images: MessageImageRef[] = [];
+            if (Array.isArray(msg.content)) {
+                // Array format - extract text and image refs
+                for (const item of msg.content) {
+                    if (item.type === 'text') {
+                        text += (text ? '\n' : '') + item.text;
+                    } else if (item.type === 'image_ref') {
+                        images.push({
+                            blobId: item.blobId,
+                            mimeType: item.mimeType,
+                            width: item.width,
+                            height: item.height,
+                        });
+                    }
+                }
+            } else {
+                // Single text format
+                text = msg.content.text;
+            }
+
             // Create a new message
             let mid = allocateId();
             state.messages.set(mid, {
@@ -600,10 +631,11 @@ export function reducer(state: ReducerState, messages: NormalizedMessage[], agen
                 realID: msg.id,
                 role: 'user',
                 createdAt: msg.createdAt,
-                text: msg.content.text,
+                text,
                 tool: null,
                 event: null,
                 meta: msg.meta,
+                images: images.length > 0 ? images : undefined,
             });
 
             // Track both localId and messageId
@@ -1105,7 +1137,8 @@ function convertReducerMessageToMessage(reducerMsg: ReducerMessage, state: Reduc
             kind: 'user-text',
             text: reducerMsg.text,
             ...(reducerMsg.meta?.displayText && { displayText: reducerMsg.meta.displayText }),
-            meta: reducerMsg.meta
+            meta: reducerMsg.meta,
+            images: reducerMsg.images
         };
     } else if (reducerMsg.role === 'agent' && reducerMsg.text !== null) {
         return {

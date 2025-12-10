@@ -106,6 +106,31 @@ const rawAgentRecordSchema = z.discriminatedUnion('type', [z.object({
     ])
 })]);
 
+// Image reference content for user messages
+const rawImageRefContentSchema = z.object({
+    type: z.literal('image_ref'),
+    blobId: z.string(),
+    mimeType: z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']),
+    width: z.number().optional(),
+    height: z.number().optional(),
+});
+export type RawImageRefContent = z.infer<typeof rawImageRefContentSchema>;
+
+// User message content can be single text or array of text/image_ref
+const rawUserContentSchema = z.union([
+    z.object({
+        type: z.literal('text'),
+        text: z.string()
+    }),
+    z.array(z.union([
+        z.object({
+            type: z.literal('text'),
+            text: z.string()
+        }),
+        rawImageRefContentSchema
+    ]))
+]);
+
 const rawRecordSchema = z.discriminatedUnion('role', [
     z.object({
         role: z.literal('agent'),
@@ -114,10 +139,7 @@ const rawRecordSchema = z.discriminatedUnion('role', [
     }),
     z.object({
         role: z.literal('user'),
-        content: z.object({
-            type: z.literal('text'),
-            text: z.string()
-        }),
+        content: rawUserContentSchema,
         meta: MessageMetaSchema.optional()
     })
 ]);
@@ -169,12 +191,14 @@ type NormalizedAgentContent =
         prompt: string
     };
 
+// Normalized user content can be text-only or array with text and image refs
+export type NormalizedUserContent =
+    | { type: 'text'; text: string; }
+    | Array<{ type: 'text'; text: string; } | { type: 'image_ref'; blobId: string; mimeType: string; width?: number; height?: number; }>;
+
 export type NormalizedMessage = ({
     role: 'user'
-    content: {
-        type: 'text';
-        text: string;
-    }
+    content: NormalizedUserContent
 } | {
     role: 'agent'
     content: NormalizedAgentContent[]
@@ -200,12 +224,34 @@ export function normalizeRawMessage(id: string, localId: string | null, createdA
     }
     raw = parsed.data;
     if (raw.role === 'user') {
+        // Handle both single text content and array content (with images)
+        let normalizedContent: NormalizedUserContent;
+        if (Array.isArray(raw.content)) {
+            // Array content - map each item
+            normalizedContent = raw.content.map(item => {
+                if (item.type === 'text') {
+                    return { type: 'text' as const, text: item.text };
+                } else {
+                    return {
+                        type: 'image_ref' as const,
+                        blobId: item.blobId,
+                        mimeType: item.mimeType,
+                        width: item.width,
+                        height: item.height,
+                    };
+                }
+            });
+        } else {
+            // Single text content (legacy format)
+            normalizedContent = raw.content;
+        }
+
         return {
             id,
             localId,
             createdAt,
             role: 'user',
-            content: raw.content,
+            content: normalizedContent,
             isSidechain: false,
             meta: raw.meta,
         };

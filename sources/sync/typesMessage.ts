@@ -1,5 +1,6 @@
 import { AgentEvent } from "./typesRaw";
 import { MessageMeta } from "./typesMessageMeta";
+import { MessageImageRef } from "./reducer/reducer";
 
 export type ToolCall = {
     name: string;
@@ -30,6 +31,7 @@ export type UserTextMessage = {
     text: string;
     displayText?: string; // Optional text to display in UI instead of actual text
     meta?: MessageMeta;
+    images?: MessageImageRef[]; // Optional attached images
 }
 
 export type ModeSwitchMessage = {
