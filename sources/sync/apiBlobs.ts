@@ -35,10 +35,12 @@ export async function uploadBlob(
         const serverUrl = getServerUrl();
         const url = `${serverUrl}/v1/sessions/${sessionId}/blobs`;
 
-        // Convert Uint8Array to Blob for fetch body (TypeScript compatibility)
-        // Create a new Uint8Array copy to ensure proper ArrayBuffer type
-        const dataBytes = new Uint8Array(encryptedData);
-        const blob = new Blob([dataBytes], { type: 'application/octet-stream' });
+        // Use ArrayBuffer directly - React Native fetch supports it,
+        // and creating Blob from ArrayBuffer is not supported on iOS
+        const arrayBuffer = encryptedData.buffer.slice(
+            encryptedData.byteOffset,
+            encryptedData.byteOffset + encryptedData.byteLength
+        ) as ArrayBuffer;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -48,7 +50,7 @@ export async function uploadBlob(
                 'X-Blob-MimeType': mimeType,
                 'X-Blob-Size': originalSize.toString(),
             },
-            body: blob,
+            body: arrayBuffer,
         });
 
         if (!response.ok) {
