@@ -20,6 +20,7 @@ import { createWorktree } from '@/utils/createWorktree';
 import { getTempData, type NewSessionData } from '@/utils/tempDataStore';
 import { linkTaskToSession } from '@/-zen/model/taskSessionLink';
 import { PermissionMode, ModelMode } from '@/components/PermissionModeSelector';
+import { useImageAttachments } from '@/hooks/useImageAttachments';
 
 // Simple temporary state for passing selections back from picker screens
 let onMachineSelected: (machineId: string) => void = () => { };
@@ -111,6 +112,16 @@ function NewSessionScreen() {
     const [isSending, setIsSending] = React.useState(false);
     const [sessionType, setSessionType] = React.useState<'simple' | 'worktree'>('simple');
     const ref = React.useRef<MultiTextInputHandle>(null);
+
+    // Image attachments state
+    const {
+        attachments: imageAttachments,
+        removeAttachment: removeImageAttachment,
+        clearAttachments: clearImageAttachments,
+        pickImage,
+        handlePaste,
+    } = useImageAttachments();
+    const [uploadingImageIds, setUploadingImageIds] = React.useState<Set<string>>(new Set());
     const headerHeight = useHeaderHeight();
     const safeArea = useSafeAreaInsets();
     const screenWidth = useWindowDimensions().width;
@@ -419,8 +430,35 @@ function NewSessionScreen() {
                 storage.getState().updateSessionPermissionMode(result.sessionId, permissionMode);
                 storage.getState().updateSessionModelMode(result.sessionId, modelMode);
 
-                // Send message
-                await sync.sendMessage(result.sessionId, input);
+                // Send message (with or without images)
+                const hasImages = imageAttachments.length > 0;
+                if (hasImages) {
+                    const currentImages = [...imageAttachments];
+                    setUploadingImageIds(new Set(currentImages.map(img => img.id)));
+                    clearImageAttachments();
+
+                    const sendResult = await sync.sendMessageWithImages(
+                        result.sessionId,
+                        input,
+                        currentImages,
+                        (imageId) => {
+                            setUploadingImageIds(prev => {
+                                const next = new Set(prev);
+                                next.delete(imageId);
+                                return next;
+                            });
+                        }
+                    );
+
+                    if (!sendResult.success && sendResult.errors.length > 0) {
+                        Modal.alert(t('common.error'), sendResult.errors.join('\n'));
+                    }
+
+                    setUploadingImageIds(new Set());
+                } else {
+                    await sync.sendMessage(result.sessionId, input);
+                }
+
                 // Navigate to session
                 router.replace(`/session/${result.sessionId}`, {
                     dangerouslySingular() {
@@ -446,7 +484,7 @@ function NewSessionScreen() {
         } finally {
             setIsSending(false);
         }
-    }, [agentType, selectedMachineId, selectedPath, input, recentMachinePaths, sessionType, permissionMode, modelMode]);
+    }, [agentType, selectedMachineId, selectedPath, input, recentMachinePaths, sessionType, permissionMode, modelMode, imageAttachments, clearImageAttachments]);
 
     return (
         <KeyboardAvoidingView
@@ -495,6 +533,12 @@ function NewSessionScreen() {
                     onModelModeChange={handleModelModeChange}
                     autocompletePrefixes={[]}
                     autocompleteSuggestions={async () => []}
+                    // Image attachment props
+                    imageAttachments={imageAttachments}
+                    onRemoveImageAttachment={removeImageAttachment}
+                    onPickImage={pickImage}
+                    uploadingImageIds={uploadingImageIds}
+                    onPaste={handlePaste}
                 />
 
                 <View style={[
