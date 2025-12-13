@@ -293,6 +293,7 @@ export const es: TranslationStructure = {
         removePath: 'Eliminar ruta',
         removePathConfirm: '¿Eliminar esta carpeta de tus rutas recientes?',
         remove: 'Eliminar',
+        fromSessions: 'De sesiones',
     },
 
     sessionHistory: {

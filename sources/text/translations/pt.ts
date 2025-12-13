@@ -293,6 +293,7 @@ export const pt: TranslationStructure = {
         removePath: 'Remover caminho',
         removePathConfirm: 'Remover esta pasta dos caminhos recentes?',
         remove: 'Remover',
+        fromSessions: 'De sessões',
     },
 
     sessionHistory: {

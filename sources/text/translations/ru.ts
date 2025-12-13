@@ -276,6 +276,7 @@ export const ru: TranslationStructure = {
         removePath: 'Удалить путь',
         removePathConfirm: 'Удалить эту папку из недавних путей?',
         remove: 'Удалить',
+        fromSessions: 'Из сессий',
     },
 
     sessionHistory: {

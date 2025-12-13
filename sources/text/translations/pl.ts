@@ -304,6 +304,7 @@ export const pl: TranslationStructure = {
         removePath: 'Usuń ścieżkę',
         removePathConfirm: 'Usunąć ten folder z ostatnich ścieżek?',
         remove: 'Usuń',
+        fromSessions: 'Z sesji',
     },
 
     sessionHistory: {

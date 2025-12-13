@@ -293,6 +293,7 @@ export const en = {
         removePath: 'Remove Path',
         removePathConfirm: 'Remove this folder from your recent paths?',
         remove: 'Remove',
+        fromSessions: 'From Sessions',
     },
 
     sessionHistory: {

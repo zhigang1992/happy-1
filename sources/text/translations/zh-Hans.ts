@@ -295,6 +295,7 @@ export const zhHans: TranslationStructure = {
         removePath: '移除路径',
         removePathConfirm: '从最近路径中移除此文件夹？',
         remove: '移除',
+        fromSessions: '来自会话',
     },
 
     sessionHistory: {

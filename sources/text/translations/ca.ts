@@ -293,6 +293,7 @@ export const ca: TranslationStructure = {
         removePath: 'Elimina el camí',
         removePathConfirm: 'Eliminar aquesta carpeta dels camins recents?',
         remove: 'Elimina',
+        fromSessions: 'De sessions',
     },
 
     sessionHistory: {

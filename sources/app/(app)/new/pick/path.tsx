@@ -77,49 +77,44 @@ export default function PathPickerScreen() {
         return machines.find(m => m.id === params.machineId);
     }, [machines, params.machineId]);
 
-    // Get recent paths for this machine - prioritize from settings, then fall back to sessions
-    const recentPaths = useMemo(() => {
+    // Get recent paths from settings (user's saved paths)
+    const savedPaths = useMemo(() => {
         if (!params.machineId) return [];
+        return recentMachinePaths
+            .filter(entry => entry.machineId === params.machineId)
+            .map(entry => entry.path);
+    }, [params.machineId, recentMachinePaths]);
 
-        const paths: string[] = [];
+    // Get paths from sessions (session-derived paths, excluding those already in savedPaths)
+    const sessionPaths = useMemo(() => {
+        if (!params.machineId || !sessions) return [];
+
+        const savedPathSet = new Set(savedPaths);
+        const pathsWithTimestamps: Array<{ path: string; timestamp: number }> = [];
         const pathSet = new Set<string>();
 
-        // First, add paths from recentMachinePaths (these are the most recent)
-        recentMachinePaths.forEach(entry => {
-            if (entry.machineId === params.machineId && !pathSet.has(entry.path)) {
-                paths.push(entry.path);
-                pathSet.add(entry.path);
+        sessions.forEach(item => {
+            if (typeof item === 'string') return; // Skip section headers
+
+            const session = item as any;
+            if (session.metadata?.machineId === params.machineId && session.metadata?.path) {
+                const path = session.metadata.path;
+                // Skip if already in saved paths or already added
+                if (!savedPathSet.has(path) && !pathSet.has(path)) {
+                    pathSet.add(path);
+                    pathsWithTimestamps.push({
+                        path,
+                        timestamp: session.updatedAt || session.createdAt
+                    });
+                }
             }
         });
 
-        // Then add paths from sessions if we need more
-        if (sessions) {
-            const pathsWithTimestamps: Array<{ path: string; timestamp: number }> = [];
-
-            sessions.forEach(item => {
-                if (typeof item === 'string') return; // Skip section headers
-
-                const session = item as any;
-                if (session.metadata?.machineId === params.machineId && session.metadata?.path) {
-                    const path = session.metadata.path;
-                    if (!pathSet.has(path)) {
-                        pathSet.add(path);
-                        pathsWithTimestamps.push({
-                            path,
-                            timestamp: session.updatedAt || session.createdAt
-                        });
-                    }
-                }
-            });
-
-            // Sort session paths by most recent first and add them
-            pathsWithTimestamps
-                .sort((a, b) => b.timestamp - a.timestamp)
-                .forEach(item => paths.push(item.path));
-        }
-
-        return paths;
-    }, [sessions, params.machineId, recentMachinePaths]);
+        // Sort by most recent first
+        return pathsWithTimestamps
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .map(item => item.path);
+    }, [sessions, params.machineId, savedPaths]);
 
 
     const handleSelectPath = React.useCallback(() => {
@@ -143,7 +138,7 @@ export default function PathPickerScreen() {
             t('newSession.removePathConfirm'),
             { confirmText: t('newSession.remove'), destructive: true }
         );
-        if (confirmed) {
+        if (confirmed && params.machineId) {
             const updatedPaths = recentMachinePaths.filter(
                 entry => !(entry.machineId === params.machineId && entry.path === pathToRemove)
             );
@@ -240,15 +235,12 @@ export default function PathPickerScreen() {
                             </View>
                         </ItemGroup>
 
-                        {recentPaths.length > 0 && (
+                        {/* Recent paths from settings (with delete button) */}
+                        {savedPaths.length > 0 && (
                             <ItemGroup title={t('newSession.recentPaths')} footer={t('newSession.recentPathsFooter')}>
-                                {recentPaths.map((path, index) => {
+                                {savedPaths.map((path, index) => {
                                     const isSelected = customPath.trim() === path;
-                                    const isLast = index === recentPaths.length - 1;
-                                    // Only allow removal for paths in recentMachinePaths (not session-derived)
-                                    const isInSettings = recentMachinePaths.some(
-                                        entry => entry.machineId === params.machineId && entry.path === path
-                                    );
+                                    const isLast = index === savedPaths.length - 1;
 
                                     return (
                                         <Item
@@ -265,7 +257,7 @@ export default function PathPickerScreen() {
                                                 setCustomPath(path);
                                                 setTimeout(() => inputRef.current?.focus(), 50);
                                             }}
-                                            rightElement={isInSettings ? (
+                                            rightElement={
                                                 <Pressable
                                                     onPress={() => handleRemovePath(path)}
                                                     hitSlop={8}
@@ -275,12 +267,12 @@ export default function PathPickerScreen() {
                                                     })}
                                                 >
                                                     <Ionicons
-                                                        name="close-circle"
-                                                        size={20}
+                                                        name="trash-outline"
+                                                        size={18}
                                                         color={theme.colors.textSecondary}
                                                     />
                                                 </Pressable>
-                                            ) : undefined}
+                                            }
                                             selected={isSelected}
                                             showChevron={false}
                                             pressableStyle={isSelected ? { backgroundColor: theme.colors.surfaceSelected } : undefined}
@@ -291,7 +283,40 @@ export default function PathPickerScreen() {
                             </ItemGroup>
                         )}
 
-                        {recentPaths.length === 0 && (
+                        {/* Paths from sessions (no delete button) */}
+                        {sessionPaths.length > 0 && (
+                            <ItemGroup title={t('newSession.fromSessions')}>
+                                {sessionPaths.map((path, index) => {
+                                    const isSelected = customPath.trim() === path;
+                                    const isLast = index === sessionPaths.length - 1;
+
+                                    return (
+                                        <Item
+                                            key={path}
+                                            title={path}
+                                            leftElement={
+                                                <Ionicons
+                                                    name="folder-outline"
+                                                    size={18}
+                                                    color={theme.colors.textSecondary}
+                                                />
+                                            }
+                                            onPress={() => {
+                                                setCustomPath(path);
+                                                setTimeout(() => inputRef.current?.focus(), 50);
+                                            }}
+                                            selected={isSelected}
+                                            showChevron={false}
+                                            pressableStyle={isSelected ? { backgroundColor: theme.colors.surfaceSelected } : undefined}
+                                            showDivider={!isLast}
+                                        />
+                                    );
+                                })}
+                            </ItemGroup>
+                        )}
+
+                        {/* Suggested paths when no recent or session paths exist */}
+                        {savedPaths.length === 0 && sessionPaths.length === 0 && (
                             <ItemGroup title="Suggested Paths">
                                 {(() => {
                                     const homeDir = machine.metadata?.homeDir || '/home';
