@@ -85,11 +85,10 @@ export default function PathPickerScreen() {
             .map(entry => entry.path);
     }, [params.machineId, recentMachinePaths]);
 
-    // Get paths from sessions (session-derived paths, excluding those already in savedPaths)
+    // Get paths from sessions (session-derived paths, independent of savedPaths)
     const sessionPaths = useMemo(() => {
         if (!params.machineId || !sessions) return [];
 
-        const savedPathSet = new Set(savedPaths);
         const pathsWithTimestamps: Array<{ path: string; timestamp: number }> = [];
         const pathSet = new Set<string>();
 
@@ -99,8 +98,8 @@ export default function PathPickerScreen() {
             const session = item as any;
             if (session.metadata?.machineId === params.machineId && session.metadata?.path) {
                 const path = session.metadata.path;
-                // Skip if already in saved paths or already added
-                if (!savedPathSet.has(path) && !pathSet.has(path)) {
+                // Skip if already added (dedupe within sessions only)
+                if (!pathSet.has(path)) {
                     pathSet.add(path);
                     pathsWithTimestamps.push({
                         path,
@@ -114,7 +113,7 @@ export default function PathPickerScreen() {
         return pathsWithTimestamps
             .sort((a, b) => b.timestamp - a.timestamp)
             .map(item => item.path);
-    }, [sessions, params.machineId, savedPaths]);
+    }, [sessions, params.machineId]);
 
 
     const handleSelectPath = React.useCallback(() => {
